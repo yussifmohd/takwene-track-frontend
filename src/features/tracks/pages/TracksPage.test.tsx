@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { TrackListItem } from "@/api/tracks";
 import { routes } from "@/router";
 import { renderRoutes } from "@/test/render";
-import { ARTIST_ID, problem, sampleArtists, sampleTracks, server, tracksHandler } from "@/test/server";
+import { ARTIST_ID, artistsHandler, problem, sampleArtists, sampleTracks, server, tracksHandler } from "@/test/server";
 import { signInForTest } from "@/test/session";
 
 const table = () => screen.getByRole("table", { name: "Tracks" });
@@ -85,6 +85,46 @@ describe("TracksPage", () => {
 
     await user.click(screen.getByRole("button", { name: "Clear filters" }));
     await waitFor(() => expect(router.state.location.search).toBe(""));
+  });
+
+  it("Clear filters also empties the artist field, and Back brings the artist back", async () => {
+    // Regression: the field kept showing the artist after Clear filters (a stale update from the
+    // field's blur was replayed over the cleared address).
+    const artists = sampleArtists.map((artist, i) => (i === 0 ? { ...artist, id: ARTIST_ID } : artist));
+    server.use(artistsHandler(artists), http.get("*/api/artists/:id", () => HttpResponse.json(artists[0])));
+    const { user, router } = renderRoutes(routes, { route: "/" });
+    await screen.findByRole("table", { name: "Tracks" });
+    const artistField = () => screen.getByRole("combobox", { name: "Artist" });
+
+    await user.selectOptions(screen.getByLabelText("Status"), "submitted");
+    await user.type(artistField(), "Amr");
+    await user.click(await screen.findByRole("option", { name: /Amr Diab/ }));
+    await waitFor(() => expect(new URLSearchParams(router.state.location.search).get("artistId")).toBe(ARTIST_ID));
+    expect(artistField()).toHaveValue("Amr Diab");
+
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
+
+    await waitFor(() => expect(router.state.location.search).toBe(""));
+    expect(screen.getByLabelText("Status")).toHaveValue("");
+    expect(artistField()).toHaveValue("");
+
+    await router.navigate(-1);
+    await waitFor(() => expect(artistField()).toHaveValue("Amr Diab"));
+  });
+
+  it("the Clear filters in the no-match message also empties the artist field", async () => {
+    const artists = sampleArtists.map((artist, i) => (i === 0 ? { ...artist, id: ARTIST_ID } : artist));
+    server.use(artistsHandler(artists), http.get("*/api/artists/:id", () => HttpResponse.json(artists[0])));
+    const { user, router } = renderRoutes(routes, { route: `/?genre=Rock&artistId=${ARTIST_ID}` });
+    const artistField = () => screen.getByRole("combobox", { name: "Artist" });
+    await waitFor(() => expect(artistField()).toHaveValue("Amr Diab"));
+    await user.click(artistField()); // focus inside the field before clearing, as a user would have
+
+    const message = await screen.findByText("No tracks match these filters");
+    await user.click(within(message.parentElement!).getByRole("button", { name: "Clear filters" }));
+
+    await waitFor(() => expect(router.state.location.search).toBe(""));
+    expect(artistField()).toHaveValue("");
   });
 
   it("explains an empty filtered result and clears it", async () => {
