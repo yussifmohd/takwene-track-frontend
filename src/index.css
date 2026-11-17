@@ -1,1 +1,120 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+  Design tokens (frontend-design): cool paper + indigo ink, one saffron accent,
+  teal/rose for status. Readex Pro covers Latin and Arabic in one voice.
+  Dark mode follows the OS (prefers-color-scheme), no switcher.
+*/
+
+:root {
+  --radius: 0.625rem;
+
+  --background: #f5f6f8;
+  --foreground: #1f1b4d;
+  --card: #ffffff;
+  --card-foreground: #1f1b4d;
+  --popover: #ffffff;
+  --popover-foreground: #1f1b4d;
+  --primary: #1f1b4d;
+  --primary-foreground: #f5f6f8;
+  --secondary: #eceef3;
+  --secondary-foreground: #1f1b4d;
+  --muted: #eceef3;
+  --muted-foreground: #5b5f78;
+  --accent: #d99a0b;
+  --accent-foreground: #1f1b4d;
+  --destructive: #c2364b;
+  --destructive-foreground: #ffffff;
+  --success: #0f8a7e;
+  --success-foreground: #ffffff;
+  --warning: #b77f05;
+  --border: #dadde5;
+  --input: #dadde5;
+  --ring: #d99a0b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --background: #12112a;
+    --foreground: #e9e8f5;
+    --card: #1b1a3a;
+    --card-foreground: #e9e8f5;
+    --popover: #1b1a3a;
+    --popover-foreground: #e9e8f5;
+    --primary: #e9e8f5;
+    --primary-foreground: #12112a;
+    --secondary: #26254a;
+    --secondary-foreground: #e9e8f5;
+    --muted: #26254a;
+    --muted-foreground: #a5a4c4;
+    --accent: #f0b429;
+    --accent-foreground: #12112a;
+    --destructive: #f0627a;
+    --destructive-foreground: #12112a;
+    --success: #3cc4b4;
+    --success-foreground: #12112a;
+    --warning: #f0b429;
+    --border: #2f2e57;
+    --input: #2f2e57;
+    --ring: #f0b429;
+  }
+}
+
+@theme inline {
+  --font-sans: "Readex Pro", ui-sans-serif, system-ui, "Segoe UI", "Noto Sans Arabic", sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/60;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "tnum" 0;
+    line-height: 1.5;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

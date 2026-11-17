@@ -13,7 +13,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest",
-    "gen:api": "openapi-typescript ../backend/specs/001-project-foundation-and-health-check/contracts/openapi.json -o src/api/schema.d.ts"
+    "gen:api": "openapi-typescript ../backend/specs/001-project-foundation-and-health-check/contracts/openapi.json -o src/api/schema.d.ts && node scripts/stamp-schema.mjs ../backend/specs/001-project-foundation-and-health-check/contracts/openapi.json"
   },
   "dependencies": {
     "@hookform/resolvers": "7.0.1",
