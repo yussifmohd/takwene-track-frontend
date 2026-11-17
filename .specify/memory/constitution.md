@@ -1,15 +1,13 @@
 <!--
 Sync Impact Report
-- Version change: template → 1.0.0 (initial ratification)
-- Principles defined: I. Contract-First Integration; II. Clear State Ownership;
-  III. Every State Is Designed; IV. Tests Ship With Features; V. Security-Aware Client;
-  VI. Spec-Driven, Traceable Delivery; VII. Simplicity & License Hygiene
-- Added sections: Technology Stack & Constraints; Development Workflow & Quality Gates; Governance
-- Removed sections: none
-- Templates: ✅ .specify/templates/tasks-template.md (tests marked REQUIRED per Principle IV)
-             ✅ .specify/templates/plan-template.md (no edit needed)
-             ✅ .specify/templates/spec-template.md (no edit needed)
+- Version change: 1.0.0 → 1.1.0 (MINOR: Definition of Done materially expanded)
+- Modified section: Development Workflow & Quality Gates – every phase PR must update
+  docs/walkthrough.md and Memory.md; the Definition of Done is not met without both (user, Phase 2)
+- Principles: unchanged
+- Templates: ✅ .specify/templates/tasks-template.md (Polish phase lists walkthrough + Memory tasks)
+             ✅ plan-template.md, spec-template.md (no edit needed)
 - Deferred TODOs: none
+- Previous: 1.0.0 initial ratification (Phase 0)
 -->
 
 # Takwene Track Management Web Constitution
@@ -78,9 +76,14 @@ Sync Impact Report
 ## Development Workflow & Quality Gates
 
 Definition of Done per phase: lint, typecheck, tests and build pass; CI green; `docker compose up`
-still works against the backend stack; spec, plan and tasks committed; repo Memory.md updated;
+still works against the backend stack; spec, plan and tasks committed; repo Memory.md and
+`docs/walkthrough.md` updated;
 PR opened with summary, test evidence and checklist; README kept current and linking to the
 backend repo's DECISIONS.md.
+Every phase PR MUST update `docs/walkthrough.md` (a section for that phase: what was built, key
+files, one end-to-end flow page → query hook → API client, decisions, how to run/test,
+limitations; describing only what is in the code) and Memory.md; without both, the Definition of
+Done is not met.
 
 ## Governance
 
@@ -89,4 +92,4 @@ approval, a semantic version bump and an updated Sync Impact Report. Every plan'
 Check and every PR review verify compliance; violations must be justified in Complexity Tracking.
 Runtime guidance: `CLAUDE.md` and `Memory.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-17
+**Version**: 1.1.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-17

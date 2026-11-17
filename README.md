@@ -8,7 +8,7 @@ to the API in the backend repo:
   [backend docs/ai-log.md](https://github.com/yussifmohd/takwene-track-backend/blob/main/docs/ai-log.md)
 - Specs per phase: [specs/](specs/)
 
-> Status: Phase 0 – app shell and system status page. Tracks and artists arrive in later phases.
+> Status: Phase 2 – system status, admin sign-in, artists (list + add). Tracks arrive in a later phase.
 
 ## Stack
 
@@ -92,6 +92,22 @@ and a cookie-issuing API; see the backend `DECISIONS.md`.
 Code: `src/stores/authStore.ts` (session), `src/lib/authSetup.ts` (API client wiring, other tabs),
 `src/features/auth` (login page, `RequireAuth` guard, account page, header menu, `SessionWatcher`).
 New protected pages go under the `RequireAuth` route in `src/router.tsx`.
+
+## Artists
+
+- `/artists` is public: every artist with the country written as a name, 20 per page, Previous/Next
+  with "Page X of Y". The page number lives in the address (`/artists?page=2`), so reloads and shared
+  links open the same page.
+- **Emails are only shown to a signed-in admin.** The API leaves them out for everyone else, the page
+  shows the column only for admins, and signing out drops cached artist pages.
+- `/artists/new` (admin only, via **Add artist**): Name (any script; Arabic types right-to-left),
+  Country (a list of country names; the API receives the ISO code) and Email, all required. The form
+  checks the same limits as the API before sending; server errors appear next to their field (a
+  duplicate email under Email). Signed-out visitors go to sign-in and come back; signed-in users
+  without the Admin role see "Only admins can add artists".
+- Country names come from the browser (`Intl.DisplayNames`, English), except `PS`, shown as
+  "Palestine". The code list (`src/lib/countries.ts`) is the API's list; a test compares its SHA-256
+  with the backend's constant.
 
 ## Project structure
 
