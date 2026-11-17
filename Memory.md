@@ -18,8 +18,12 @@
 - Return addresses only through `safeRedirect` / `loginPathFor`.
 - Role-only pages: put `handle.requiresRole = { role, deniedTitle, backTo }` on a route under `RequireAuth`.
 - Artists (Phase 2): list keys `artistKeys` (`["artists", …]`), removed on sign-out (cached emails); emails rendered only when `useIsAdmin()`. Page number in `?page` via `usePageParam`. Country list `src/lib/countries.ts` = API list (hash test); names via `Intl.DisplayNames` + override `PS` → "Palestine". Form schemas: zod 4 `min(1, { error, abort: true })` so "required" wins over later checks; lengths in code points (`[...s].length`).
-- Contract: `npm run gen:api` reads `../backend/specs/003-artists-and-dsps-management/contracts/openapi.json` (update the path each phase that changes the API).
+- Contract: `npm run gen:api` reads `../backend/specs/004-track-catalog-with-filters-and-status/contracts/openapi.json` (update the path each phase that changes the API).
 - Session rules (fix after Phase 1): storage and memory always agree – the storage adapter validates on read and removes rejected entries; "signed in" = store holds a session (no `Date.now()` in selectors); expiry only via `endExpiredSession()`; storage listener also handles `key === null`. Toasts are bottom-right (fixed in the Toaster wrapper) so they never cover the header.
+- Tracks (Phase 3): home page `/` = catalogue; filters + page in the URL via `useTrackFilters` (invalid values ignored, filter change drops page). `trackKeys` (`["tracks", …]`) stay cached on sign-out (no personal data). Genres/statuses in `features/tracks/catalog.ts` typed against the contract unions. Status buttons come only from the API's `allowedNextStatuses`; distributed asks first (AlertDialog); 409 → toast + refetch. Release dates are calendar dates → `formatCalendarDate` (UTC). Distributions empty state: draft/submitted "Not sent to any platform yet.", distributed "Marked as distributed without platform deliveries recorded." (Phase 4 fills the list).
+- `ArtistPicker` (own WAI-ARIA combobox, no package): first 10 on focus, 250 ms debounced `?search=`, keyboard; selected name via `useArtistQuery` for URL filters ("Unknown artist" on 404).
+- Health: `StatusDot` in the header (same query as the card) → `/status` (`StatusPage`). shadcn alert-dialog written by hand (CLI again injected `cn`).
+- MSW defaults now include `tracksHandler()` (filters + paging), `trackDetail()` builder, `artistsHandler` supports `search`.
 - Reload tests: `sessionConsistency.test.tsx` `reload()` helper (unmount → restore storage → `persist.rehydrate()` → render). Prove a regression test fails on the old code (stash the fix) before trusting it.
 
 ## Pinned versions
@@ -34,4 +38,5 @@ openapi-typescript 7.13.0 · images node:26.13.1-alpine, nginxinc/nginx-unprivil
 - Fix `fix-sign-out-session-state-after-reload` (after Phase 1): stale stored session after reload, header covered by toasts, cross-tab clear; 93 tests.
 - Change `fix-sign-out-redirect-and-screen-state`: sign-out lands on `/login` (reported bug was a UX expectation; not reproducible as a failure); 95 tests.
 - Phase 2 (`003-artists-and-dsps-management`): public artists list (paging in URL, countries by name, emails admin-only), admin-only Add artist with client + server field errors, role-aware guard; 132 tests; bundle 181 kB gzip.
-- Next: Phase 3 – tracks (`004-track-catalog-with-filters-and-status`).
+- Phase 3 (`004-track-catalog-with-filters-and-status`): tracks catalogue at `/` (filters in URL), track page with admin status control + distributions empty state, add track with artist picker and ISRC checks, header status dot → `/status`; 198 tests; bundle 200.7 kB gzip.
+- Next: Phase 4 – distribution (`005-track-distribution-to-dsps`).
