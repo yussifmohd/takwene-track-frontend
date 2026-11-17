@@ -3,3 +3,7 @@
 *.sh eol=lf
 *.png binary
 *.ico binary
+
+# GitHub language statistics: Spec Kit and Claude tooling scripts are not project code
+.specify/** linguist-vendored
+.claude/** linguist-vendored
