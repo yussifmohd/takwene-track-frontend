@@ -1,6 +1,16 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { changeTrackStatus, createTrack, getTrack, listTracks, type CreateTrackRequest } from "@/api/tracks";
-import type { TrackStatus } from "../catalog";
+import { listDsps } from "@/api/dsps";
+import {
+  changeTrackStatus,
+  createTrack,
+  distributeTrack,
+  getTrack,
+  listTracks,
+  recordDistributionAnswer,
+  type CreateTrackRequest,
+  type TrackDetail,
+} from "@/api/tracks";
+import type { DistributionAnswer, TrackStatus } from "../catalog";
 import { trackKeys } from "../queryKeys";
 import type { TrackFilters } from "./useTrackFilters";
 
@@ -32,14 +42,36 @@ export function useCreateTrackMutation() {
   });
 }
 
-/** Changes a track's status; the response is the updated track, so the detail needs no refetch. */
-export function useChangeTrackStatusMutation(id: string) {
+/** Every track change answers with the updated track: store it as the detail and refresh the lists. */
+function useTrackChangeMutation<TVariables>(id: string, mutationFn: (variables: TVariables) => Promise<TrackDetail>) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (status: TrackStatus) => changeTrackStatus(id, status),
+    mutationFn,
     onSuccess: (track) => {
       queryClient.setQueryData(trackKeys.detail(id), track);
       return queryClient.invalidateQueries({ queryKey: trackKeys.lists() });
     },
   });
+}
+
+/** Changes a track's status (submit or withdraw). */
+export function useChangeTrackStatusMutation(id: string) {
+  return useTrackChangeMutation(id, (status: TrackStatus) => changeTrackStatus(id, status));
+}
+
+/** Sends a track to platforms. */
+export function useDistributeTrackMutation(id: string) {
+  return useTrackChangeMutation(id, (dspIds: string[]) => distributeTrack(id, dspIds));
+}
+
+/** Records a platform's simulated answer for one pending delivery. */
+export function useRecordAnswerMutation(id: string) {
+  return useTrackChangeMutation(id, ({ dspId, status }: { dspId: string; status: DistributionAnswer }) =>
+    recordDistributionAnswer(id, dspId, status),
+  );
+}
+
+/** The platforms; they change only with a deployment, so they are fetched once. */
+export function useDspsQuery(enabled = true) {
+  return useQuery({ queryKey: ["dsps"], queryFn: ({ signal }) => listDsps(signal), staleTime: Infinity, enabled });
 }

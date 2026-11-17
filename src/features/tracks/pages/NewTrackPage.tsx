@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { ArtistPicker } from "@/features/artists/components/ArtistPicker";
 import { GENRES } from "../catalog";
 import { useCreateTrackMutation } from "../hooks/useTrackQueries";
@@ -26,9 +27,6 @@ function FieldError({ id, message }: { id: string; message?: string }) {
     </p>
   ) : null;
 }
-
-const selectClass =
-  "h-9 w-full rounded-md border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-sm";
 
 export function NewTrackPage() {
   const navigate = useNavigate();
@@ -148,20 +146,21 @@ export function NewTrackPage() {
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="grid content-start gap-2">
                 <Label htmlFor="genre">Genre</Label>
-                <select
+                <NativeSelect
                   id="genre"
-                  className={selectClass}
                   aria-invalid={errors.genre ? true : undefined}
                   aria-describedby={describedBy("genre")}
                   {...register("genre")}
                 >
-                  <option value="">Choose a genre</option>
+                  <option value="" disabled>
+                    Choose a genre
+                  </option>
                   {GENRES.map((genre) => (
                     <option key={genre} value={genre}>
                       {genre}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
                 <FieldError id="genre-error" message={errors.genre?.message} />
               </div>
 
