@@ -54,7 +54,8 @@ export function AppShell() {
           </div>
         </div>
       </header>
-      <main id="main" tabIndex={-1} className="mx-auto max-w-5xl px-4 py-8 outline-none sm:px-6 sm:py-10">
+      {/* Phones: room below the content so the last row can scroll above a toast (toasts sit at the bottom). */}
+      <main id="main" tabIndex={-1} className="mx-auto max-w-5xl px-4 pt-8 pb-32 outline-none sm:px-6 sm:py-10">
         <Outlet />
       </main>
     </div>
