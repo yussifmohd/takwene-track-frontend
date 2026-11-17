@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
+import { artistKeys } from "@/features/artists/queryKeys";
 import { endExpiredSession, useAuthStore } from "@/stores/authStore";
 import { AUTH_QUERY_KEY } from "../hooks/useLoginMutation";
 import { useRequiresAuth } from "../hooks/useRequiresAuth";
@@ -51,6 +52,8 @@ export function SessionWatcher() {
   useEffect(() => {
     if (!signOutReason || pendingFrom.current !== null) return;
     queryClient.removeQueries({ queryKey: AUTH_QUERY_KEY });
+    // Artist pages fetched while signed in contain emails (admin-only data).
+    queryClient.removeQueries({ queryKey: artistKeys.all });
 
     const destination = signOutDestination(signOutReason, `${location.pathname}${location.search}`, onProtectedPage);
     if (signOutReason === "manual") toast.success("Signed out");
