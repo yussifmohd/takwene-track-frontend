@@ -75,7 +75,7 @@ backend contract `../backend/specs/002-jwt-authentication-and-authorization/cont
 - [x] T021 [P] Repo `Memory.md` (state, conventions: auth store, RequireAuth, skipAuthHandling)
 - [x] T022 Full local check: lint, typecheck, tests, build, bundle budget, `docker compose up --build` against the backend stack, quickstart.md steps 1–9 (time sign-in for SC-001, A7), secret scan
 - [x] T023 Screenshots (desktop light/dark, 360 px via iframe) of login and account pages; fix issues
-- [ ] T024 Mark tasks [X]; push; open PR referencing the backend PR (after it is opened); CI green without Node 20 annotation
+- [x] T024 Mark tasks [X]; push; open PR referencing the backend PR (after it is opened); CI green without Node 20 annotation
 
 ---
 
