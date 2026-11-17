@@ -102,6 +102,10 @@ from the backend `.env`. Tests: `npm test` (81 at the end of Phase 1).
 ## Fix – Sign-out session state after reload (`fix-sign-out-session-state-after-reload`)
 
 ### What was fixed
+> Note (added in Phase 2): the four items below are real edge cases found while investigating, and
+> their tests fail on the old code, but they were not shown to cause the report. The report could not
+> be reproduced and turned out to be a UX expectation (see "Sign-out lands on the sign-in page" below).
+
 Bug reported after Phase 1: the header looked half-rendered while the "Signed out" toast showed,
 and after sign-out + reload the stored session and the app's state could disagree. Found in real Edge:
 1. The toaster sat at top-right, exactly over the header's Sign in / Sign out controls.
@@ -188,3 +192,55 @@ router and components.
 
 ### Known limitations
 - A manual sign-out does not remember the page; signing in again goes to the status page.
+
+---
+
+## Phase 2 – Artists (`003-artists-and-dsps-management`)
+
+### What was built
+A public Artists page (names in any script, countries by name, paging in the address, emails only for
+admins) and an admin-only Add artist page with client checks matching the API and server errors next
+to their fields. The navigation's Artists entry is now a real link.
+
+### Important files
+| Path | What it does |
+|---|---|
+| `src/api/artists.ts` | `listArtists`, `createArtist`, types from the generated contract. |
+| `src/lib/countries.ts` | The API's 249 ISO codes, `countryName` (browser names, `PS` → "Palestine"), sorted options, shared SHA-256. |
+| `src/features/artists/queryKeys.ts` | `["artists","list",{page,pageSize}]`; dropped on sign-out by `SessionWatcher` (cached emails). |
+| `src/features/artists/hooks/usePageParam.ts` | `?page=N` (invalid → 1), writes history entries. |
+| `src/features/artists/hooks/useArtistsQuery.ts` | One page, previous page kept while the next loads. |
+| `src/features/artists/components/ArtistList.tsx` | The roster: table from `sm`, stacked rows on phones, names via `UserText`, email column for admins; skeleton of the same shape. |
+| `src/features/artists/components/Pagination.tsx` | "Page X of Y", Previous/Next. |
+| `src/features/artists/pages/ArtistsPage.tsx` | Loading, error + Retry, empty (with action for admins), page-past-end, list. |
+| `src/features/artists/schemas.ts` | zod: name 1–200 code points, assigned country, required email ≤ 254 – same limits as the API. |
+| `src/features/artists/components/CountrySelect.tsx` | Native select of country names (type-to-jump, accessible, mobile-native). |
+| `src/features/artists/pages/NewArtistPage.tsx` | The form: field errors from zod or the server (400/409), form alert for others, toast + back to the list. |
+| `src/features/auth/components/RequireAuth.tsx` | Now also `handle.requiresRole` → "Only admins can add artists". |
+
+### Flow: adding an artist
+`/artists/new` → `RequireAuth` (signed out → `/login?redirect=…`; no Admin role → not-allowed view) →
+form → zod check (first problem focused, nothing sent) → `POST /api/artists` with trimmed values →
+201: invalidate artist lists, toast "Artist added" with the name, navigate to `/artists` →
+400/409: `getFieldErrors` → `setError` on `name`/`countryCode`/`email` → 401: the Phase 1 sign-out
+(back here after signing in) → other errors: message on the form.
+
+### Key decisions and why
+- **Emails hidden three ways** (API omits them, UI gates on the Admin role, sign-out drops the cache):
+  artists are real people and the list is public.
+- **Native select for countries**: 249 options are fine natively, with keyboard type-to-jump and
+  screen-reader support, and no extra package (no combobox library).
+- **Browser country names** instead of a names package; one override where engines disagree and the
+  label matters for this audience (`PS`).
+- **Page in the URL** so reloads, Back and shared links keep the page.
+
+### How to run and test
+Backend stack up, then `docker compose up --build` here and open http://localhost:8081/artists.
+Tests: `npm test` (132). Real-browser check (Edge over DevTools, scratch script): visitor list and
+paging, sign-in from Add artist and back, empty submit, duplicate email, create, sign-out; desktop
+light and 400 px dark, no horizontal overflow, no console errors.
+
+### Known limitations
+- No edit/delete/detail/search for artists (no API for them yet).
+- After adding, the list opens on page 1; the new artist may sort onto another page (the toast names it).
+- Unsaved form input is discarded when leaving the page (no warning).

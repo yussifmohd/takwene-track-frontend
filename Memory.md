@@ -16,6 +16,9 @@
 - Protected pages: children of the `RequireAuth` route (`handle.requiresAuth`). `RouterProvider` comes from `react-router/dom`.
 - Sign-out: every sign-out lands on `/login`. `signOut(reason)` clears session + storage; `SessionWatcher` alone finishes it (drop `["auth"]` cache, redirect via `signOutDestination`, explain, acknowledge after the new page shows). Manual → `/login` + toast; expired/401 → `/login?redirect=` + note on the sign-in page; other tab → only protected pages leave. `RequireAuth` renders nothing while a sign-out is pending. New signed-in queries must live under `["auth", …]` or be removed there too.
 - Return addresses only through `safeRedirect` / `loginPathFor`.
+- Role-only pages: put `handle.requiresRole = { role, deniedTitle, backTo }` on a route under `RequireAuth`.
+- Artists (Phase 2): list keys `artistKeys` (`["artists", …]`), removed on sign-out (cached emails); emails rendered only when `useIsAdmin()`. Page number in `?page` via `usePageParam`. Country list `src/lib/countries.ts` = API list (hash test); names via `Intl.DisplayNames` + override `PS` → "Palestine". Form schemas: zod 4 `min(1, { error, abort: true })` so "required" wins over later checks; lengths in code points (`[...s].length`).
+- Contract: `npm run gen:api` reads `../backend/specs/003-artists-and-dsps-management/contracts/openapi.json` (update the path each phase that changes the API).
 - Session rules (fix after Phase 1): storage and memory always agree – the storage adapter validates on read and removes rejected entries; "signed in" = store holds a session (no `Date.now()` in selectors); expiry only via `endExpiredSession()`; storage listener also handles `key === null`. Toasts are bottom-right (fixed in the Toaster wrapper) so they never cover the header.
 - Reload tests: `sessionConsistency.test.tsx` `reload()` helper (unmount → restore storage → `persist.rehydrate()` → render). Prove a regression test fails on the old code (stash the fix) before trusting it.
 
@@ -30,4 +33,5 @@ openapi-typescript 7.13.0 · images node:26.13.1-alpine, nginxinc/nginx-unprivil
 - Phase 1 (`002-jwt-authentication-and-authorization`): login page, persisted session, RequireAuth + account page, header menu, expiry/401/cross-tab sign-out; CI on Node 24 actions; 81 tests.
 - Fix `fix-sign-out-session-state-after-reload` (after Phase 1): stale stored session after reload, header covered by toasts, cross-tab clear; 93 tests.
 - Change `fix-sign-out-redirect-and-screen-state`: sign-out lands on `/login` (reported bug was a UX expectation; not reproducible as a failure); 95 tests.
-- Next: Phase 2 – artists & DSPs (`003-artists-and-dsps-management`).
+- Phase 2 (`003-artists-and-dsps-management`): public artists list (paging in URL, countries by name, emails admin-only), admin-only Add artist with client + server field errors, role-aware guard; 132 tests; bundle 181 kB gzip.
+- Next: Phase 3 – tracks (`004-track-catalog-with-filters-and-status`).
