@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { makeSession } from "@/test/session";
-import { getValidAccessToken, isSessionValid, SESSION_STORAGE_KEY, useAuthStore } from "./authStore";
+import { endExpiredSession, getValidAccessToken, isSessionValid, SESSION_STORAGE_KEY, useAuthStore } from "./authStore";
 
 function stored(state: unknown, version = 1) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ state, version }));
@@ -46,10 +46,22 @@ describe("authStore", () => {
     expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
   });
 
-  it("ignores unreadable stored JSON", async () => {
+  it("drops unreadable stored JSON and removes it from storage", async () => {
     localStorage.setItem(SESSION_STORAGE_KEY, "{not json");
     await useAuthStore.persist.rehydrate();
     expect(useAuthStore.getState().session).toBeNull();
+    expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it("sign-out leaves nothing of the session in storage", () => {
+    useAuthStore.getState().signIn(makeSession());
+    localStorage.setItem("unrelated", "kept");
+
+    useAuthStore.getState().signOut("manual");
+    useAuthStore.getState().acknowledgeSignOut();
+
+    expect(Object.keys(localStorage)).toEqual(["unrelated"]);
+    expect(JSON.stringify(localStorage)).not.toContain("token-abc");
   });
 
   it("signOut while already signed out keeps the earlier reason", () => {
@@ -79,7 +91,9 @@ describe("authStore", () => {
 
     await useAuthStore.persist.rehydrate();
 
+    // Memory and storage agree: the rejected entry is gone, not just ignored (regression).
     expect(useAuthStore.getState().session).toBeNull();
+    expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
   });
 
   it("isSessionValid is false at and after expiry", () => {
@@ -90,8 +104,21 @@ describe("authStore", () => {
     expect(isSessionValid(null)).toBe(false);
   });
 
-  it("getValidAccessToken returns null for an expired in-memory session", () => {
-    useAuthStore.setState({ session: makeSession({ expiresAt: new Date(Date.now() - 1).toISOString() }) });
+  it("getValidAccessToken ends an expired in-memory session and returns null", () => {
+    useAuthStore.getState().signIn(makeSession({ expiresAt: new Date(Date.now() - 1).toISOString() }));
     expect(getValidAccessToken()).toBeNull();
+    expect(useAuthStore.getState().session).toBeNull();
+    expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it("endExpiredSession only acts on an expired session", () => {
+    const session = makeSession();
+    useAuthStore.getState().signIn(session);
+    expect(endExpiredSession(Date.parse(session.expiresAt) - 1)).toBe(false);
+    expect(useAuthStore.getState().session).toEqual(session);
+
+    expect(endExpiredSession(Date.parse(session.expiresAt))).toBe(true);
+    expect(useAuthStore.getState().signOutReason).toBe("expired");
+    expect(endExpiredSession()).toBe(false);
   });
 });

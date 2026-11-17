@@ -2,20 +2,19 @@ import { LogIn, LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useAuthStore, useIsAuthenticated, useSession } from "@/stores/authStore";
+import { useAuthStore, useSession } from "@/stores/authStore";
 import { useRequiresAuth } from "../hooks/useRequiresAuth";
 import { loginPathFor } from "../redirect";
 
 /** Header control: "Sign in" (with a return address) or the signed-in email + "Sign out". */
 export function AuthMenu() {
-  const isAuthenticated = useIsAuthenticated();
   const session = useSession();
   const signOut = useAuthStore((s) => s.signOut);
   const location = useLocation();
   const navigate = useNavigate();
   const onProtectedPage = useRequiresAuth();
 
-  if (!isAuthenticated || !session) {
+  if (!session) {
     if (location.pathname === "/login") return null;
     return (
       <Button asChild variant="outline" size="sm">
