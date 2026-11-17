@@ -50,10 +50,12 @@ export function artistsHandler(all: Artist[] = sampleArtists, options: { request
     const page = Number(url.searchParams.get("page") ?? "1");
     const pageSize = Number(url.searchParams.get("pageSize") ?? "20");
     const admin = request.headers.has("authorization");
-    const items = all
+    const search = url.searchParams.get("search")?.toLowerCase();
+    const matching = search ? all.filter((artist) => artist.name.toLowerCase().includes(search)) : all;
+    const items = matching
       .slice((page - 1) * pageSize, page * pageSize)
       .map((artist) => (admin ? artist : { ...artist, email: undefined }));
-    const body: ArtistsPage = { items, page, pageSize, totalCount: all.length, totalPages: Math.ceil(all.length / pageSize) };
+    const body: ArtistsPage = { items, page, pageSize, totalCount: matching.length, totalPages: Math.ceil(matching.length / pageSize) };
     return HttpResponse.json(body);
   });
 }
