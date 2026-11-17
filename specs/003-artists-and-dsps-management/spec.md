@@ -12,10 +12,11 @@
 
 ## Clarifications
 
-### Session 2026-11-17 (recommended defaults, pending the user's confirmation at the analyze checkpoint)
+### Session 2026-11-17 (recommended defaults; confirmed by the user at the analyze checkpoint, with the email change below)
 
 - Q: Where does the admin create an artist? → A: On its own page, "Add artist", reached from a button on the artists list that only a signed-in admin sees. The page is protected (visitors are sent to sign-in and back). After saving, the admin returns to the list, sees an "Artist added" confirmation, and the list includes the new artist.
 - Q: How is the country chosen? → A: From a list of country names (sorted alphabetically, type-to-jump), not by typing a code; the list shows names, the API receives the code.
+- Q: Is the artist's email required? → A: **Yes** (changed by the user, to match the assignment's Artist entity and the API). The form asks for Name, Country and Email, all required.
 - Q: How does paging work in the list? → A: Previous/Next with "Page X of Y" and the total; the page number is part of the address so a reload or shared link opens the same page.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -51,7 +52,7 @@ see names, country names and totals; move to page 2.
 
 ### User Story 2 - Admin adds an artist (Priority: P1)
 
-A signed-in admin adds an artist with name, country and an optional email, sees problems next to
+A signed-in admin adds an artist with name, country and contact email, sees problems next to
 the fields they concern, and returns to the list with the artist in it.
 
 **Why this priority**: The only way artists enter the catalog from the product.
@@ -62,8 +63,8 @@ messages), then valid values (land on the list with a confirmation and the artis
 **Acceptance Scenarios**:
 
 1. **Given** a signed-in admin on the artists list, **When** they choose "Add artist", **Then** a
-   form with Name, Country and Email (optional) opens.
-2. **Given** an empty name or no country, or a malformed email, **When** they submit, **Then** the
+   form with Name, Country and Email (all required) opens.
+2. **Given** an empty name, no country, or a missing or malformed email, **When** they submit, **Then** the
    messages appear next to those fields without contacting the server, and focus moves to the
    first problem.
 3. **Given** the server refuses a value (e.g. the email is already used by another artist),
@@ -125,7 +126,7 @@ actions that will be refused.
 - **FR-005**: Email addresses MUST only be shown to a signed-in admin.
 - **FR-006**: The "Add artist" control and page MUST only be available to a signed-in admin; the
   page MUST be protected like other protected pages (sign-in and return).
-- **FR-007**: The form MUST check required name and country, name length, and email format before
+- **FR-007**: The form MUST check required name, country and email, name and email length, and email format before
   sending, using the same limits as the API.
 - **FR-008**: Validation and conflict errors from the server MUST appear next to the field they
   name; other errors appear as a message on the form.

@@ -11,7 +11,7 @@
 
 - `ArtistDto { id, name, countryCode, email?, createdAtUtc }`
 - `ArtistDtoPagedResult { items, page, pageSize, totalCount, totalPages }` (name as generated)
-- `CreateArtistRequest { name, countryCode, email? }`
+- `CreateArtistRequest { name, countryCode, email }` (all required)
 
 ## Form model (zod)
 
@@ -19,7 +19,7 @@
 |---|---|
 | name | trimmed, 1–200 code points, "Enter the artist's name." |
 | countryCode | one of the 249 codes, "Choose a country." |
-| email | optional; empty → omitted; ≤ 254; valid format |
+| email | required ("Enter the artist's email."), trimmed, ≤ 254, valid format |
 
 ## Routes
 

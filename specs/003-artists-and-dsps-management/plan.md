@@ -94,7 +94,7 @@ src/test/server.ts                          # artist fixtures/handlers
 4. **Email visibility**: rendered only when `useIsAdmin()` and present in the DTO (the API already
    omits it for visitors) (R4).
 5. **Form**: zod mirrors API limits (name 1–200 code points via `[...value].length`, country in list,
-   email optional ≤ 254 with the same format rule as login). Server 400/409 → `getFieldErrors` →
+   email required ≤ 254 with the same format rule as login). Server 400/409 → `getFieldErrors` →
    `setError` on `name`/`countryCode`/`email`; other errors → form alert (`describeError`) (R5).
 6. **Admin guard**: `RequireAuth` gets an optional `role` (handle `requiresRole: "Admin"`); a signed-in
    non-admin sees "Only admins can add artists" instead of the form (R6).

@@ -56,8 +56,8 @@ backend contract `../backend/specs/003-artists-and-dsps-management/contracts/ope
 ## Phase 5: User Story 2 – Admin adds an artist (P1)
 
 ### Tests
-- [ ] T014 [P] [US2] `src/features/artists/schemas.test.ts` (200/201 code points incl. Arabic/emoji, email optional/format/254, country in list)
-- [ ] T015 [P] [US2] `pages/NewArtistPage.test.tsx` (MSW): empty submit → messages, focus Name, no request; 400 field errors placed; 409 → message under Email, values kept; 500/network → form alert; submitting disables button; success → `/artists`, toast "Artist added", list refetched; 401 → Phase 1 sign-out; name input `dir="auto"`
+- [ ] T014 [P] [US2] `src/features/artists/schemas.test.ts` (200/201 code points incl. Arabic/emoji, email required/format/254, country in list)
+- [ ] T015 [P] [US2] `pages/NewArtistPage.test.tsx` (MSW): empty submit → messages for Name, Country and Email, focus Name, no request; 400 field errors placed; 409 → message under Email, values kept; 500/network → form alert; submitting disables button; success → `/artists`, toast "Artist added", list refetched; 401 → Phase 1 sign-out; name input `dir="auto"`
 
 ### Implementation
 - [ ] T016 [US2] `schemas.ts`, `hooks/useCreateArtistMutation.ts`, `components/CountrySelect.tsx`
