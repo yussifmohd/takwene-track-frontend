@@ -8,6 +8,8 @@
 */
 
 :root {
+  /* Native popups (select lists, date pickers, scrollbars) take their palette from color-scheme. */
+  color-scheme: light;
   --radius: 0.625rem;
 
   --background: #f5f6f8;
@@ -31,7 +33,10 @@
   --warning: #b77f05;
   --border: #dadde5;
   --input: #dadde5;
-  --ring: #d99a0b;
+  /* Darker than the accent so focus rings reach 3:1 on light surfaces (#d99a0b was 2.1-2.5:1). */
+  --ring: #9a6500;
+  /* Highlighted row in lists (select options, artist picker): accent tint on the popup surface. */
+  --highlight: color-mix(in oklab, var(--accent) 20%, var(--popover));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -90,6 +95,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-highlight: var(--highlight);
 }
 
 @layer base {
@@ -115,6 +121,81 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/*
+  Selects – the one place that styles every <select> (rendered by components/ui/native-select.tsx).
+  Colours come only from the tokens above.
+
+  1. Everywhere: options carry opaque theme colours. Without them Chromium paints the native list from the
+     select's own background (in dark mode a 30% tint composited on white: light grey with light text,
+     1.5:1). This is also the fallback where the customizable select is not supported.
+  2. Where supported (Chromium 135+): the customizable select, so the open list, the highlighted row and
+     the focus ring follow the theme too. It is still a native <select>: keyboard, type-ahead, forms and
+     screen-reader roles are the browser's.
+*/
+@layer base {
+  select option,
+  select optgroup {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+  }
+  select option:disabled {
+    color: var(--muted-foreground);
+  }
+
+  @supports (appearance: base-select) {
+    select,
+    select::picker(select) {
+      appearance: base-select;
+    }
+    select {
+      align-items: center;
+      gap: 0.5rem;
+    }
+    select::picker-icon {
+      color: var(--muted-foreground);
+      transition: rotate 150ms ease-out;
+    }
+    select:open::picker-icon {
+      rotate: 180deg;
+    }
+    select::picker(select) {
+      margin-block: 0.25rem;
+      padding: 0.25rem;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      background-color: var(--popover);
+      color: var(--popover-foreground);
+      box-shadow: 0 12px 28px -12px color-mix(in oklab, var(--foreground) 40%, transparent);
+      max-block-size: min(20rem, 60dvh);
+      overflow-y: auto;
+    }
+    select option {
+      gap: 0.5rem;
+      padding: 0.375rem 0.5rem;
+      border-radius: calc(var(--radius) - 4px);
+      outline: none;
+    }
+    select option::checkmark {
+      color: var(--popover-foreground);
+    }
+    select option:checked {
+      font-weight: 600;
+    }
+    select option:hover:not(:disabled) {
+      background-color: var(--highlight);
+    }
+    select option:focus-visible {
+      background-color: var(--highlight);
+      outline: 2px solid var(--ring);
+      outline-offset: -2px;
+    }
+    select option:disabled {
+      background-color: transparent;
+      cursor: not-allowed;
     }
   }
 }

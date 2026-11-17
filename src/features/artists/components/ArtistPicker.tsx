@@ -145,7 +145,7 @@ export function ArtistPicker({
                 onMouseMove={() => setActive(index)}
                 className={cn(
                   "flex cursor-pointer items-baseline justify-between gap-3 rounded-sm px-2 py-1.5 text-sm",
-                  index === active && "bg-muted",
+                  index === active && "bg-highlight ring-2 ring-inset ring-ring",
                   artist.id === value && "font-medium",
                 )}
               >
