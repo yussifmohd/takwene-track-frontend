@@ -37,7 +37,9 @@ mutually compatible; permissive licenses only (MIT / Apache-2.0 / ISC).
 | openapi-typescript | 7.13.0 | MIT | 2026-02-11 | generates `src/api/schema.d.ts` |
 | vitest | 5.1.0 | MIT | 2026-11-02 | |
 | jsdom | 30.1.3 | MIT | 2026-10-15 | |
-| @testing-library/react | 16.3.3 | MIT | 2026-08-27 | (+ @testing-library/dom 10.x peer) |
+| @testing-library/react | 16.3.3 | MIT | 2026-08-27 | |
+| @testing-library/dom | 10.4.2 | MIT | 2026-09-13 | RTL peer |
+| globals | 17.14.0 | MIT | 2026-11-01 | ESLint browser/node globals |
 | @testing-library/user-event | 14.6.8 | MIT | 2026-10-13 | |
 | @testing-library/jest-dom | 7.0.1 | MIT | 2026-08-09 | |
 | msw | 3.0.3 | MIT | 2026-10-10 | HTTP mocking in tests |
@@ -98,6 +100,14 @@ Exact transitive versions are fixed by `package-lock.json`.
 - **Decision**: `.github/workflows/frontend-ci.yml` on `pull_request` to main: checkout,
   setup-node (.nvmrc, npm cache), `npm ci`, `npm run lint`, `npm run typecheck`, `npm test -- --run`,
   `npm run build`.
+
+## R8b. Implementation notes
+
+- shadcn `add` without `init` injected unpinned `cn` and `next-themes` and imported `cn` from the
+  `cn` package; both removed, imports pointed at `@/lib/utils`, Toaster uses `theme="system"`.
+- MSW 3 renamed `onUnhandledRequest` to `onUnhandledFrame`.
+- Dev-only audit finding (minimatch ReDoS via eslint/typescript-eslint/ts-morph/redocly) accepted:
+  build tooling with our own glob patterns; production dependencies audit clean.
 
 ## R9. Testing
 
