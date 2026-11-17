@@ -1,12 +1,23 @@
 import { NavLink, Outlet } from "react-router";
+import { AuthMenu } from "@/features/auth/components/AuthMenu";
+import { SessionWatcher } from "@/features/auth/components/SessionWatcher";
 import { cn } from "@/lib/utils";
+import { useIsAuthenticated } from "@/stores/authStore";
 import { BrandMark } from "./BrandMark";
 
 const COMING_SOON = ["Tracks", "Artists"] as const;
 
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  cn(
+    "whitespace-nowrap rounded-md px-3 py-1.5 font-medium transition-colors hover:bg-muted",
+    isActive && "bg-muted text-foreground shadow-[inset_0_-2px_0_var(--accent)]",
+  );
+
 export function AppShell() {
+  const isAuthenticated = useIsAuthenticated();
   return (
     <div className="min-h-dvh">
+      <SessionWatcher />
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2"
@@ -23,16 +34,7 @@ export function AppShell() {
             </span>
           </NavLink>
           <nav aria-label="Main" className="-mx-3 flex w-[calc(100%+1.5rem)] items-center gap-1 overflow-x-auto px-3 text-sm sm:mx-0 sm:w-auto sm:px-0">
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) =>
-                cn(
-                  "whitespace-nowrap rounded-md px-3 py-1.5 font-medium transition-colors hover:bg-muted",
-                  isActive && "bg-muted text-foreground shadow-[inset_0_-2px_0_var(--accent)]",
-                )
-              }
-            >
+            <NavLink to="/" end className={navLinkClass}>
               Status
             </NavLink>
             {COMING_SOON.map((label) => (
@@ -45,7 +47,15 @@ export function AppShell() {
                 {label} <span className="sr-only text-xs sm:not-sr-only">(coming soon)</span>
               </span>
             ))}
+            {isAuthenticated ? (
+              <NavLink to="/account" className={navLinkClass}>
+                My account
+              </NavLink>
+            ) : null}
           </nav>
+          <div className="ml-auto">
+            <AuthMenu />
+          </div>
         </div>
       </header>
       <main id="main" tabIndex={-1} className="mx-auto max-w-5xl px-4 py-8 outline-none sm:px-6 sm:py-10">
