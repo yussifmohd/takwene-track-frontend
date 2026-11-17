@@ -28,11 +28,11 @@ backend contract `../backend/specs/001-project-foundation-and-health-check/contr
 ## Phase 2: Foundational
 
 - [ ] T007 `npm run gen:api` → `src/api/schema.d.ts` from the backend Phase 0 contract (header comment with source path)
-- [ ] T008 `src/api/problem.ts` (ProblemDetails type re-export, `ApiError` class, `parseProblem`, `getFieldErrors`) and `src/api/client.ts` (`apiFetch` with base URL, JSON, `acceptStatuses`, token provider + onUnauthorized hooks, network error → `ApiError(0)`)
+- [ ] T008 `src/api/problem.ts` (ProblemDetails type re-export, `ApiError` class, `parseProblem`, `getFieldErrors`) and `src/api/client.ts` (`apiFetch` with base URL, JSON, `acceptStatuses`, token provider + onUnauthorized hooks, network error → `ApiError(0)`) and `src/api/toast.ts` `showProblemToast(error)` (ProblemDetails title/detail → sonner toast; analyze C1)
 - [ ] T009 [P] Tests `src/api/client.test.ts` (problem+json parsed into ApiError; non-JSON error synthesised; accepted 503 returns body; bearer header added when provider returns token; network failure → status 0)
 - [ ] T010 `src/lib/queryClient.ts`, `src/main.tsx` (QueryClientProvider, RouterProvider, Toaster), `src/router.tsx`
 - [ ] T011 [P] Test utilities `src/test/setup.ts` (jest-dom, MSW server lifecycle), `src/test/server.ts`, `src/test/render.tsx` (`renderWithProviders`)
-- [ ] T012 [P] Shared states `src/components/ErrorState.tsx` (title, detail, Retry) and `src/components/PageHeader.tsx`; `src/lib/format.ts` (time formatting)
+- [ ] T012 [P] Shared states `src/components/ErrorState.tsx` (title, detail, Retry) and `src/components/PageHeader.tsx`; `src/lib/format.ts` (time formatting), and `src/components/UserText.tsx` (renders user-entered text with `dir="auto"`, FR-010, analyze E2) with a test in `src/components/UserText.test.tsx`
 
 **Checkpoint**: client + providers ready, tests green.
 
@@ -89,7 +89,7 @@ backend contract `../backend/specs/001-project-foundation-and-health-check/contr
 
 - [ ] T027 [P] `README.md` skeleton: overview, links (backend repo, backend DECISIONS.md), prerequisites, run with Docker (after backend) / without Docker, regenerate API types, tests, CI, structure
 - [ ] T028 [P] Repo-local `Memory.md` (conventions, pinned versions, state, next action) and `CLAUDE.md` (imports Memory.md, keeps SPECKIT block)
-- [ ] T029 Full local check (lint, typecheck, tests, build, docker compose up) and secret scan
+- [ ] T029 Full local check (lint, typecheck, tests, build, docker compose up), secret scan, and bundle-size check: initial JS < 250 kB gzip from the `vite build` report (plan performance goal; analyze E3)
 - [ ] T030 Push branch and open PR with `gh pr create` referencing the backend PR — after the backend PR is opened
 
 ---
