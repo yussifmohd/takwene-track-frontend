@@ -39,25 +39,21 @@ export function ArtistPicker({
   ...aria
 }: ArtistPickerProps) {
   const listId = useId();
-  const [text, setText] = useState(selectedName ?? "");
+  // Text the user is typing; null when not typing. The field otherwise shows the selected artist's
+  // name, derived from the props on every render – no copy to keep in sync, so an update from outside
+  // (e.g. "Clear filters" changing the address) can never be overwritten by a stale one.
+  const [typed, setTyped] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
 
-  // Show the selected artist's name when it arrives or changes from outside (e.g. the address):
-  // adjust state during render instead of in an effect (no extra render pass).
-  const [shown, setShown] = useState({ value, selectedName });
-  if (shown.value !== value || shown.selectedName !== selectedName) {
-    setShown({ value, selectedName });
-    setText(value ? (selectedName ?? "") : "");
-  }
-
-  const term = value && text === selectedName ? "" : text;
+  const text = typed ?? (value ? (selectedName ?? "") : "");
+  const term = typed ?? "";
   const search = useArtistSearch(term, open);
   const options = search.data?.items ?? [];
 
   const pick = (artist: Artist) => {
     onChange({ id: artist.id, name: artist.name });
-    setText(artist.name);
+    setTyped(null);
     setOpen(false);
     setActive(-1);
   };
@@ -102,7 +98,7 @@ export function ArtistPicker({
         placeholder={placeholder}
         value={text}
         onChange={(event) => {
-          setText(event.target.value);
+          setTyped(event.target.value);
           setOpen(true);
           setActive(-1);
           if (value) onChange(null); // typing replaces the selection
@@ -111,8 +107,7 @@ export function ArtistPicker({
         onBlur={() => {
           setOpen(false);
           setActive(-1);
-          if (!value) setText("");
-          else if (selectedName) setText(selectedName);
+          setTyped(null); // unpicked text is dropped; the field shows the selection again
         }}
         onKeyDown={onKeyDown}
         className={cn(
@@ -125,7 +120,7 @@ export function ArtistPicker({
           type="button"
           onClick={() => {
             onChange(null);
-            setText("");
+            setTyped(null);
           }}
           className="absolute end-1.5 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Clear artist"

@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useState } from "react";
 import { ArtistPicker } from "@/features/artists/components/ArtistPicker";
 import { useArtistQuery } from "@/features/artists/hooks/useArtistLookup";
 import { isApiError } from "@/api/problem";
@@ -22,8 +23,14 @@ export function TrackFilters({
   onChange: <K extends keyof Filters>(key: K, value: Filters[K] | undefined) => void;
   onClear: () => void;
 }) {
-  const artist = useArtistQuery(filters.artistId);
-  const artistName = artist.data?.name ?? (isApiError(artist.error) && artist.error.status === 404 ? "Unknown artist" : undefined);
+  // The name of an artist just picked is known at once; one from the address is looked up.
+  const [picked, setPicked] = useState<{ id: string; name: string } | null>(null);
+  const artist = useArtistQuery(picked?.id === filters.artistId ? undefined : filters.artistId);
+  const artistName = !filters.artistId
+    ? undefined
+    : picked?.id === filters.artistId
+      ? picked.name
+      : (artist.data?.name ?? (isApiError(artist.error) && artist.error.status === 404 ? "Unknown artist" : undefined));
 
   return (
     <div className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] sm:items-end">
@@ -65,7 +72,10 @@ export function TrackFilters({
           id="filter-artist"
           value={filters.artistId}
           selectedName={artistName}
-          onChange={(picked) => onChange("artistId", picked?.id)}
+          onChange={(next) => {
+            setPicked(next);
+            onChange("artistId", next?.id);
+          }}
           placeholder="All artists"
           clearable
         />
