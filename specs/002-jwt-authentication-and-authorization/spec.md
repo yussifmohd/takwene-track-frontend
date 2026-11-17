@@ -12,7 +12,7 @@
 
 ## Clarifications
 
-### Session 2026-11-17 (recommended defaults applied; pending user confirmation at the analyze checkpoint)
+### Session 2026-11-17 (recommended defaults, confirmed by the user at the analyze checkpoint)
 
 - Q: Which page is protected in Phase 1? → A: "My account" (email, role, session end from the API); the header shows "Sign in" / email + "Sign out". Editing pages join the protected set from Phase 2.
 - Q: What happens at token expiry while the app is open? → A: Automatic sign-out at the expiry time with a "session expired" toast; on a protected page the admin is sent to sign-in with a return link, on a public page they stay where they are.

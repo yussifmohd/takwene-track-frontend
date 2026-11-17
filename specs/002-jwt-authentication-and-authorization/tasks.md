@@ -38,7 +38,7 @@ backend contract `../backend/specs/002-jwt-authentication-and-authorization/cont
 ## Phase 3: User Story 1 – Admin signs in (P1) 🎯 MVP
 
 ### Tests
-- [ ] T010 [P] [US1] `src/features/auth/pages/LoginPage.test.tsx` (MSW): field errors without request; success stores session and navigates to the safe redirect; 401 → generic alert, password cleared + focused, email kept; 400 → field errors from ProblemDetails; 429 → wait message with seconds; network error → unreachable message; submitting disables button; signed-in visitor → redirected to `/`
+- [ ] T010 [P] [US1] `src/features/auth/pages/LoginPage.test.tsx` (MSW): field errors without request; success stores session and navigates to the safe redirect; 401 → generic alert, password cleared + focused, email kept; 400 → field errors from ProblemDetails; 429 → wait message with seconds; network error → unreachable message; submitting disables button; signed-in visitor → redirected to `/`; keyboard-only: tab to fields, type, Enter submits (A6)
 
 ### Implementation
 - [ ] T011 [US1] `src/features/auth/schemas.ts` (zod login schema), `hooks/useLoginMutation.ts`
@@ -62,10 +62,10 @@ backend contract `../backend/specs/002-jwt-authentication-and-authorization/cont
 
 ### Tests
 - [ ] T017 [P] [US2] `src/features/auth/components/AuthMenu.test.tsx` (signed out → "Sign in" link with return address; signed in → email + "Sign out"; sign-out on `/account` → `/` + "Signed out" toast; on `/` stays)
-- [ ] T018 [P] [US2] `src/features/auth/components/SessionWatcher.test.tsx` (fake timers: expiry → signed out + "session expired" toast; on protected page → login with redirect; any 401 from the API → signed out + "no longer valid" toast; `["auth"]` queries removed)
+- [ ] T018 [P] [US2] `src/features/auth/components/SessionWatcher.test.tsx` (fake timers: expiry → signed out + "session expired" toast; on protected page → login with redirect; any 401 from the API → signed out + "no longer valid" toast; `["auth"]` queries removed; another tab signing out (`storage` event) signs this tab out; window focus with an expired session signs out (A5))
 
 ### Implementation
-- [ ] T019 [US2] `src/features/auth/components/AuthMenu.tsx`, `SessionWatcher.tsx`, `hooks/useSessionExpiry.ts`; mount in `AppShell` (+ "My account" nav item when signed in); update `AppShell.test.tsx`
+- [ ] T019 [US2] `src/features/auth/components/AuthMenu.tsx`, `SessionWatcher.tsx` (expiry timer, focus check, cross-tab via `storage` event), `hooks/useSessionExpiry.ts`; mount in `AppShell` (+ "My account" nav item when signed in); update `AppShell.test.tsx`
 
 ---
 
@@ -73,7 +73,7 @@ backend contract `../backend/specs/002-jwt-authentication-and-authorization/cont
 
 - [ ] T020 [P] README: sign-in, session storage trade-off, protected routes
 - [ ] T021 [P] Repo `Memory.md` (state, conventions: auth store, RequireAuth, skipAuthHandling)
-- [ ] T022 Full local check: lint, typecheck, tests, build, bundle budget, `docker compose up --build` against the backend stack, quickstart.md steps 1–9, secret scan
+- [ ] T022 Full local check: lint, typecheck, tests, build, bundle budget, `docker compose up --build` against the backend stack, quickstart.md steps 1–9 (time sign-in for SC-001, A7), secret scan
 - [ ] T023 Screenshots (desktop light/dark, 360 px via iframe) of login and account pages; fix issues
 - [ ] T024 Mark tasks [X]; push; open PR referencing the backend PR (after it is opened); CI green without Node 20 annotation
 
