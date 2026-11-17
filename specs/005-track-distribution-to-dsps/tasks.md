@@ -54,7 +54,7 @@ description: "Task list for Phase 4 – Track Distribution to DSPs (Web app)"
 - [x] T012 `npm run lint && npm run typecheck && npm test && npm run build`; bundle < 250 kB gzip; tests 3× green
 - [x] T013 Real-browser run (scratch script) on the compose stack: quickstart 1–8, desktop light + 400 px dark
 - [x] T014 README rewritten to the README rule (finished product, no phase history; incl. the reset note for databases created before distributions and why PATCH → distributed is refused); `docs/walkthrough.md` Phase 4; `Memory.md` (repo + master)
-- [ ] T015 Frontend section of `docs/ai-log.md` Phase 4 in the backend repo (on the open backend PR branch if still open, else a docs PR)
+- [x] T015 Frontend section of `docs/ai-log.md` Phase 4 in the backend repo (on the open backend PR branch if still open, else a docs PR)
 
 ## Dependencies
 
