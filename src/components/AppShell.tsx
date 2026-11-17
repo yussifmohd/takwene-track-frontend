@@ -25,7 +25,7 @@ export function AppShell() {
         Skip to content
       </a>
       <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-8 gap-y-3 px-4 py-3 sm:px-6 lg:flex-nowrap">
           <NavLink to="/" className="flex items-center gap-3 rounded-md">
             <BrandMark className="size-8" />
             <span className="leading-tight">
@@ -44,7 +44,11 @@ export function AppShell() {
                 title="Coming soon"
                 className="cursor-not-allowed whitespace-nowrap rounded-md px-3 py-1.5 text-muted-foreground"
               >
-                {label} <span className="sr-only text-xs sm:not-sr-only">(coming soon)</span>
+                {label}
+                <span className="sr-only"> (coming soon)</span>
+                <span aria-hidden className="ml-1.5 hidden rounded-full bg-muted px-1.5 py-px text-[0.6875rem] sm:inline">
+                  soon
+                </span>
               </span>
             ))}
             {isAuthenticated ? (
