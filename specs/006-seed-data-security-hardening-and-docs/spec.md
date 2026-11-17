@@ -10,7 +10,7 @@
 
 ## Clarifications
 
-### Session 2026-11-17 (recommended defaults – pending the user's OK)
+### Session 2026-11-17 (Q1–Q5 and A1–A6 confirmed by the user, with changes)
 
 - Q1, Q2, Q5: (API – see the backend spec) when sample data is added, extra rate limits, the
   DECISIONS.md example.
@@ -25,6 +25,10 @@
   address and forces two extra hosts into the content policy. → A: Serve the font files from the
   web app itself (Readex Pro is under the SIL Open Font License; files only, no package) and remove
   Google from the content policy.
+- **User changes**: Q3 – all 21 development-tool findings are listed in the security review and
+  DECISIONS.md (backend) as known, fixed by removal or accepted, with the reason and the evidence that
+  none ship to browsers. Q4 – the Readex Pro license file ships with the font files, the content policy
+  is updated, and a real browser shows that no request goes to Google.
 
 ## User Scenarios & Testing *(mandatory)*
 

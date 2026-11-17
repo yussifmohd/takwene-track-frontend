@@ -17,7 +17,7 @@ description: "Task list for Phase 5 – Security Hardening, Documentation and En
 
 - [ ] T001 [US1] Remove `shadcn` devDependency and `components.json`; `npm audit` before/after recorded
 - [ ] T002 [US1] Try `overrides` pinning eslint's `minimatch` to 11.0.4 (license BlueOak-1.0.0); keep only if lint, typecheck, tests, build pass; else revert and record as accepted
-- [ ] T003 [US1] Self-host Readex Pro (OFL-1.1 files + `OFL.txt` in `public/fonts/`), `@font-face` in `src/index.css`, remove Google links from `index.html`
+- [ ] T003 [US1] Self-host Readex Pro (OFL-1.1 files + `OFL.txt` license file in `public/fonts/`), `@font-face` in `src/index.css`, remove Google links from `index.html`; real-browser network log proves no request to Google (Q4)
 - [ ] T004 [US1] `nginx/security-headers.conf` snippet; include in `/` and `/assets/`; `/api/` without nginx copies; CSP without Google hosts + `object-src 'none'`; COOP; Dockerfile copies the snippet
 - [ ] T005 [US1] Evidence: `curl -sI` on the running container (quickstart 2), network log (quickstart 3), Trivy on `trackmgmt-web:local`, `.dockerignore` check → rows for the backend's `docs/security-review.md`
 - [ ] T006 [P] [US1] Check user text is rendered only as text (lint rule + grep) and API errors show only ProblemDetails `title`/`detail` (existing tests) → evidence rows
@@ -33,7 +33,7 @@ description: "Task list for Phase 5 – Security Hardening, Documentation and En
 ## Phase 4: User Story 4 – Delivery (P2)
 
 - [ ] T009 [US4] Dead code/files check (grep `console.`/`debugger`/TODO, unused files); clean clone build + tests in a new scratch folder
-- [ ] T010 Polish: walkthrough Phase 5 section, Memory.md, ai-log Phase 5 frontend section on the backend branch, tick tasks, PR after the backend PR; CI green
+- [ ] T010 Polish: walkthrough Phase 5 section, Memory.md, ai-log Phase 5 frontend section on the backend branch, submission checklist in master Memory.md filled in (A5), tick tasks, PR after the backend PR; CI green
 
 ## Dependencies
 
