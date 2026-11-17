@@ -368,3 +368,23 @@ console errors. Bundle 202 kB gzip.
 - Platform answers are simulated by the admin.
 - The catalogue list does not show deliveries (only the track page does).
 - Without seed data, deliveries exist only once created in the app or through the API.
+
+### Follow-up: selects that follow the theme
+Found by the developer in manual testing: native select lists were light grey with pale text in dark mode
+(measured 1.49:1) and used the browser's light-blue/grey highlight.
+- `src/components/ui/native-select.tsx` is the only component that renders a `<select>` (a test enforces it).
+- `src/index.css` → "Selects" is the only place that styles them, with tokens only:
+  1. every option gets `--popover` / `--popover-foreground` (fixes the unreadable list everywhere; it is
+     also the fallback);
+  2. inside `@supports (appearance: base-select)` (Chromium 135+: Edge, Chrome, Brave) the customizable
+     select styles the open list, hover and keyboard-focused rows (`--highlight`, an accent tint), the
+     selected row (checkmark + weight), disabled rows and a 2 px `--ring` focus ring. It is still a native
+     `<select>`: Space opens, arrows move, typing jumps (e.g. "eg" → Egypt), Enter picks, Escape closes
+     without changing; the accessibility tree is a combobox with options, `expanded` true when open.
+- Plain CSS alone could not change the highlighted row of the classic popup (the browser draws it), hence
+  the customizable select.
+- Light `--ring` is now `#9a6500` (the saffron `#d99a0b` was 2.1–2.5:1 on light surfaces).
+- The artist picker's active row uses the same `--highlight` plus an inset ring.
+- Measured in Edge, dark, 1100 px: list text 13.8:1, highlighted row 9.32:1, closed select 12.83:1, focus
+  ring 6.06:1 against the row. The full Edge/Chrome/Brave × light/dark × 1100/400 px matrix was still
+  running when this was committed.
