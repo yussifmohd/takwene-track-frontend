@@ -125,7 +125,7 @@ describe("session consistency across sign-out and reload", () => {
     await waitFor(() => expect(useAuthStore.getState().session).toBeNull(), { timeout: 4000 });
 
     await waitFor(() => expect(router.state.location.pathname).toBe("/login"));
-    expectHeader("signed-out", { onLoginPage: true });
+    await waitFor(() => expectHeader("signed-out", { onLoginPage: true }));
     expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
   });
 
