@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Navigate, useSearchParams } from "react-router";
+import { Navigate, useLocation, useSearchParams } from "react-router";
 import { getFieldErrors, isApiError } from "@/api/problem";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useIsAuthenticated } from "@/stores/authStore";
 import { useLoginMutation } from "../hooks/useLoginMutation";
 import { safeRedirect } from "../redirect";
+import { SIGN_OUT_MESSAGES, type SignOutNavigationState } from "../signOutDestination";
 import { loginSchema, type LoginValues } from "../schemas";
 
 const UNLOCKS = [
@@ -36,6 +37,8 @@ function describeLoginError(error: unknown): string {
 export function LoginPage() {
   const [searchParams] = useSearchParams();
   const redirectTo = safeRedirect(searchParams.get("redirect"));
+  const signOutReason = (useLocation().state as SignOutNavigationState | null)?.signOutReason;
+  const signOutMessage = signOutReason ? SIGN_OUT_MESSAGES[signOutReason] : undefined;
   const isAuthenticated = useIsAuthenticated();
   const mutation = useLoginMutation();
   const [formError, setFormError] = useState<string | null>(null);
@@ -98,6 +101,11 @@ export function LoginPage() {
       <p className="mt-2 text-muted-foreground">
         Use the Takwene admin account.
       </p>
+      {signOutMessage ? (
+        <p role="status" className="mt-4 max-w-xl rounded-md border bg-muted px-3 py-2 text-sm">
+          {signOutMessage}
+        </p>
+      ) : null}
 
       <div className="mt-6 grid gap-10 md:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] md:items-start md:gap-16">
         <Card className="py-0">

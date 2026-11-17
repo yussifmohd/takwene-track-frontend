@@ -14,8 +14,11 @@ const sessionSchema = z.object({
 
 export type Session = z.infer<typeof sessionSchema>;
 
-/** Why the last sign-out happened; drives the toast (in memory only). */
-export type SignOutReason = "manual" | "expired" | "rejected";
+/**
+ * Why the last sign-out happened (in memory only). SessionWatcher handles it once – clears signed-in
+ * data, redirects and explains – then acknowledges it.
+ */
+export type SignOutReason = "manual" | "expired" | "rejected" | "other-tab";
 
 interface AuthState {
   session: Session | null;
@@ -28,19 +31,35 @@ interface AuthState {
 
 type PersistedAuth = { session: Session | null };
 
+const storedValueSchema = z.object({ state: z.object({ session: sessionSchema }), version: z.literal(SESSION_VERSION) });
+
+/** The stored session if it parses, has this version and has not expired; otherwise null. */
+function parseStoredSession(raw: string, now = Date.now()): Session | null {
+  try {
+    const parsed = storedValueSchema.safeParse(JSON.parse(raw));
+    return parsed.success && isSessionValid(parsed.data.state.session, now) ? parsed.data.state.session : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * localStorage with one rule: no session → no key. Any later state write (e.g. clearing the
- * sign-out reason) can then never leave a stale entry behind, and other tabs see a removal.
+ * localStorage that always agrees with memory:
+ * - writing: no session → no key, so a later state change can never leave a stale entry behind;
+ * - reading: an entry that is unreadable, from another version or expired is removed at the moment
+ *   it is rejected. (Before, it was only ignored in memory and stayed in storage, so storage said
+ *   "signed in" while the app said "signed out".)
  */
 const sessionStorageAdapter: PersistStorage<PersistedAuth> = {
   getItem: (name) => {
     const raw = localStorage.getItem(name);
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as StorageValue<PersistedAuth>;
-    } catch {
+    if (raw === null) return null;
+    const session = parseStoredSession(raw);
+    if (!session) {
+      localStorage.removeItem(name);
       return null;
     }
+    return { state: { session }, version: SESSION_VERSION } satisfies StorageValue<PersistedAuth>;
   },
   setItem: (name, value) => {
     if (value.state.session) localStorage.setItem(name, JSON.stringify(value));
@@ -53,12 +72,6 @@ export function isSessionValid(session: Session | null, now = Date.now()): sessi
   return session !== null && Date.parse(session.expiresAt) > now;
 }
 
-/** Keeps a persisted session only if it parses and has not expired. */
-function readPersistedSession(persisted: unknown): Session | null {
-  const parsed = z.object({ session: sessionSchema.nullable() }).safeParse(persisted);
-  if (!parsed.success) return null;
-  return isSessionValid(parsed.data.session) ? parsed.data.session : null;
-}
 
 /**
  * The signed-in session. Persisted to localStorage so it survives reloads (accepted trade-off:
@@ -78,19 +91,33 @@ export const useAuthStore = create<AuthState>()(
       version: SESSION_VERSION,
       storage: sessionStorageAdapter,
       partialize: (state) => ({ session: state.session }),
-      // Data from another version is discarded rather than trusted.
+      // getItem only returns validated sessions of this version; anything else never gets here.
       migrate: () => ({ session: null }),
-      merge: (persisted, current) => ({ ...current, session: readPersistedSession(persisted) }),
+      merge: (persisted, current) => ({ ...current, session: (persisted as PersistedAuth | undefined)?.session ?? null }),
     },
   ),
 );
 
+/*
+ * "Signed in" means exactly "the store holds a session". Selectors never look at the clock: a
+ * selector only re-runs when the store changes, so a time-based answer differs between components
+ * that rendered at different moments. Expiry is turned into a store change instead
+ * (endExpiredSession), by the SessionWatcher timer, on focus/visibility and before every API call.
+ */
 export const useSession = () => useAuthStore((s) => s.session);
-export const useIsAuthenticated = () => useAuthStore((s) => isSessionValid(s.session));
-export const useIsAdmin = () => useAuthStore((s) => isSessionValid(s.session) && s.session.roles.includes("Admin"));
+export const useIsAuthenticated = () => useAuthStore((s) => s.session !== null);
+export const useIsAdmin = () => useAuthStore((s) => s.session?.roles.includes("Admin") ?? false);
 
-/** The bearer token to send, or null when signed out or expired. */
+/** Signs out with reason "expired" if the held session has expired. Returns true if it did. */
+export function endExpiredSession(now = Date.now()): boolean {
+  const { session, signOut } = useAuthStore.getState();
+  if (session === null || isSessionValid(session, now)) return false;
+  signOut("expired");
+  return true;
+}
+
+/** The bearer token to send, or null when signed out. An expired session is ended, never sent. */
 export function getValidAccessToken(): string | null {
-  const { session } = useAuthStore.getState();
-  return isSessionValid(session) ? session.accessToken : null;
+  endExpiredSession();
+  return useAuthStore.getState().session?.accessToken ?? null;
 }

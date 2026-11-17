@@ -7,7 +7,7 @@ import {
 } from "lucide-react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({ ...props }: Omit<ToasterProps, "position">) => {
   return (
     <Sonner
       // Follows the OS colour scheme, like the rest of the app (no theme switcher).
@@ -29,6 +29,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
         } as React.CSSProperties
       }
       {...props}
+      // Bottom, never top, and not overridable: a top toast covers the header's sign-in/sign-out
+      // controls exactly when they change (e.g. "Signed out"), which looked like a half-rendered menu.
+      position="bottom-right"
     />
   )
 }

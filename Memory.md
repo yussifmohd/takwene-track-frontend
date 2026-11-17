@@ -13,8 +13,11 @@
 - Tests: Vitest + RTL + MSW 3 (`onUnhandledFrame: "error"`), co-located `*.test.ts(x)`.
 - Exact pins (`npm i -E`), license check first. shadcn `add` injects the unrelated `cn` package and `from "cn"` imports (happened in Phase 0 and 1): always review package.json and imports after it. Don't run unpinned `npx` tools (e.g. prettier) – not a project dependency.
 - Auth (Phase 1): session in `useAuthStore` (`trackmgmt.session`, v1, zod-validated, key removed when signed out). `setupAuth()` wires `apiFetch` (valid token only; 401 → signOut("rejected")) and cross-tab sync. Calls where 401 is an answer use `skipAuthHandling` (login).
-- Protected pages: children of the `RequireAuth` route (`handle.requiresAuth`). Sign-out from a protected page uses `navigate("/", { flushSync: true })` – needs `RouterProvider` from `react-router/dom`.
+- Protected pages: children of the `RequireAuth` route (`handle.requiresAuth`). `RouterProvider` comes from `react-router/dom`.
+- Sign-out: every sign-out lands on `/login`. `signOut(reason)` clears session + storage; `SessionWatcher` alone finishes it (drop `["auth"]` cache, redirect via `signOutDestination`, explain, acknowledge after the new page shows). Manual → `/login` + toast; expired/401 → `/login?redirect=` + note on the sign-in page; other tab → only protected pages leave. `RequireAuth` renders nothing while a sign-out is pending. New signed-in queries must live under `["auth", …]` or be removed there too.
 - Return addresses only through `safeRedirect` / `loginPathFor`.
+- Session rules (fix after Phase 1): storage and memory always agree – the storage adapter validates on read and removes rejected entries; "signed in" = store holds a session (no `Date.now()` in selectors); expiry only via `endExpiredSession()`; storage listener also handles `key === null`. Toasts are bottom-right (fixed in the Toaster wrapper) so they never cover the header.
+- Reload tests: `sessionConsistency.test.tsx` `reload()` helper (unmount → restore storage → `persist.rehydrate()` → render). Prove a regression test fails on the old code (stash the fix) before trusting it.
 
 ## Pinned versions
 Node 26.13.1 · react 19.3.1 · react-router 8.5.1 · @tanstack/react-query 5.105.3 · zustand 5.0.16 · react-hook-form 7.91.0 · zod 4.6.7 ·
@@ -25,4 +28,6 @@ openapi-typescript 7.13.0 · images node:26.13.1-alpine, nginxinc/nginx-unprivil
 ## State
 - Phase 0 (`001-project-foundation-and-health-check`): implemented; status page with health card, app shell, Docker on 8081, CI.
 - Phase 1 (`002-jwt-authentication-and-authorization`): login page, persisted session, RequireAuth + account page, header menu, expiry/401/cross-tab sign-out; CI on Node 24 actions; 81 tests.
+- Fix `fix-sign-out-session-state-after-reload` (after Phase 1): stale stored session after reload, header covered by toasts, cross-tab clear; 93 tests.
+- Change `fix-sign-out-redirect-and-screen-state`: sign-out lands on `/login` (reported bug was a UX expectation; not reproducible as a failure); 95 tests.
 - Next: Phase 2 – artists & DSPs (`003-artists-and-dsps-management`).
