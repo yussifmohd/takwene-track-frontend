@@ -8,9 +8,14 @@ describe("routing", () => {
     const { user, router } = renderRoutes(routes, { route: "/no/such/page" });
 
     expect(screen.getByRole("heading", { name: "Page not found" })).toBeInTheDocument();
-    await user.click(screen.getByRole("link", { name: "Go to status page" }));
+    await user.click(screen.getByRole("link", { name: "Go to tracks" }));
 
     expect(router.state.location.pathname).toBe("/");
+    expect(await screen.findByRole("heading", { name: "Tracks", level: 1 })).toBeInTheDocument();
+  });
+
+  it("shows the status page at /status", async () => {
+    renderRoutes(routes, { route: "/status" });
     expect(await screen.findByRole("heading", { name: "System status" })).toBeInTheDocument();
   });
 });

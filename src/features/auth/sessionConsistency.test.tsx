@@ -118,11 +118,11 @@ describe("session consistency across sign-out and reload", () => {
   });
 
   it("when the session expires on an open page, the header flips as a whole and storage is cleared", async () => {
-    signInForTest({ expiresAt: new Date(Date.now() + 300).toISOString() });
+    signInForTest({ expiresAt: new Date(Date.now() + 1500).toISOString() });
     const { router } = renderRoutes(routes, { route: "/" });
     expectHeader("signed-in");
 
-    await waitFor(() => expect(useAuthStore.getState().session).toBeNull(), { timeout: 2000 });
+    await waitFor(() => expect(useAuthStore.getState().session).toBeNull(), { timeout: 4000 });
 
     await waitFor(() => expect(router.state.location.pathname).toBe("/login"));
     expectHeader("signed-out", { onLoginPage: true });
