@@ -65,7 +65,7 @@ src/features/tracks/
   components/DistributeDialog.tsx # checkboxes, disabled with status, "Send to N platforms"
   components/StatusControl.tsx    # confirm dialog for distributed removed (never offered)
   components/TrackDetailSkeleton.tsx   # + deliveries rows
-  pages/TrackDetailPage.tsx       # Distribute button next to the status control
+  pages/TrackDetailPage.tsx       # unchanged layout; Distribute lives in the Distributions heading (moved during implementation)
 ```
 
 ## Key design decisions (details in research.md)

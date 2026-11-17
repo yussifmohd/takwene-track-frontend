@@ -305,3 +305,66 @@ status dot, sign-out – desktop light and 400 px dark, no horizontal overflow, 
 - The artist picker shows at most 10 matches; typing more of the name narrows them.
 - Unsaved form input is discarded when leaving the page (no warning).
 
+
+---
+
+## Phase 4 – Distribution (`005-track-distribution-to-dsps`)
+
+### What was built
+The track page shows where a track was delivered: a table (stacked rows on phones) with platform,
+status badge (pending, live, rejected), sent time and answer time ("Waiting" while pending). Admins
+get a **Distribute** dialog (a checkbox per platform: never-sent and rejected ones can be chosen,
+pending and live ones are disabled with their status) and, on pending rows, **Mark live** /
+**Mark rejected** to record the platform's simulated answer. "Mark as distributed", its confirmation
+dialog and the "without platform deliveries" text are gone: the API refuses that status change.
+
+### Important files
+| Path | What it does |
+|---|---|
+| `src/features/tracks/components/DistributionsSection.tsx` | Heading + Distribute, the "answers are simulated" note, the deliveries table, answer buttons from `allowedAnswers`, 409 → toast + reload. |
+| `src/features/tracks/components/DistributeDialog.tsx` | Distribute button / disabled "Sent to every platform"; the checklist dialog (platforms from `GET /api/dsps`), send, no-op and conflict handling. |
+| `src/features/tracks/components/DistributionStatusBadge.tsx` | Word + mark (open ring, dot, struck dot) in saffron / teal / rose. |
+| `src/features/tracks/components/StatusControl.tsx` | Submit / Withdraw only; never offers distributed. |
+| `src/features/tracks/hooks/useTrackQueries.ts` | `useDistributeTrackMutation`, `useRecordAnswerMutation` (one helper: store the returned track, refresh lists), `useDspsQuery` (cached for good). |
+| `src/features/tracks/catalog.ts` | Delivery status labels and answer words, typed against the contract. |
+| `src/api/tracks.ts`, `src/api/dsps.ts` | `distributeTrack`, `recordDistributionAnswer`, `listDsps`. |
+| `src/components/ui/dialog.tsx` | shadcn dialog written by hand on `radix-ui` (`alert-dialog.tsx` removed: its only user was the old confirmation). |
+| `src/test/server.ts` | `serveTrack()` answers GET/PATCH/distribute/answers for one track using the API's rules; `delivery()`, `DSPS`. |
+
+### Flow: Distribute → page → hook → API
+1. `DistributionsSection` shows **Distribute** for admins when the track's `canDistribute` is true.
+   `DistributeDialog` reads the platforms (`useDspsQuery`); if every platform is pending or live, the
+   button is disabled with "Sent to every platform".
+2. In the dialog, the admin ticks platforms; the button names the count.
+3. `useDistributeTrackMutation` → `distributeTrack(id, dspIds)` → `POST /api/tracks/{id}/distribute`.
+4. The API answers with the updated track; the hook writes it into the detail cache and invalidates the
+   track lists (the catalogue badge changes to distributed). The dialog closes with "Sent to N
+   platforms", or "Already sent to these platforms" when the track had not changed.
+5. `409`/`404` → toast with the API's reason, the detail is refetched, the dialog closes; `401` → the
+   usual sign-out to `/login?redirect=…`; other errors → toast, the dialog stays open.
+
+### Key decisions and why
+- **Only what the API allows** (`canDistribute`, `allowedAnswers`, `allowedNextStatuses`): no client
+  copy of the rules (they drifted in an earlier phase).
+- **Native checkboxes in a Radix dialog**: a handful of platforms needs no search; checkboxes are the
+  most accessible multi-choice control.
+- **Distribute sits in the Distributions heading**, next to the table it changes (the plan had it next
+  to the status control; moved during implementation because the status control says "final" for a
+  distributed track while Distribute still applies there).
+- **No-op detection**: the API answers 200 also when nothing changed; the dialog treats an unchanged
+  `updatedAtUtc` as "already sent".
+- **Badges never rely on colour alone**: the word and a different mark per status.
+
+### How to run and test
+Backend stack from a fresh database (`docker compose down -v` there), then `docker compose up --build`
+here; sign in and open a submitted track. `npm test` (214, three runs green). Real-browser check (Edge
+over DevTools, scratch script) on the compose stack, desktop light and 400 px dark: visitor sees
+deliveries without controls; admin sees only "Withdraw to draft" on a submitted track; Distribute opens
+with Enter and closes with Escape (focus returns); send two platforms; mark live and rejected; send the
+rejected one again; send the last one → "Sent to every platform". No horizontal overflow, no app
+console errors. Bundle 202 kB gzip.
+
+### Known limitations
+- Platform answers are simulated by the admin.
+- The catalogue list does not show deliveries (only the track page does).
+- Without seed data, deliveries exist only once created in the app or through the API.
