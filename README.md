@@ -69,6 +69,30 @@ typecheck, tests, build and an initial-JS budget (< 250 kB gzip). To make it a m
 Only `VITE_API_BASE_URL` (default `/api`). Anything prefixed `VITE_` ends up in the public
 bundle, so no secrets belong in `.env` files here.
 
+## Sign-in and sessions
+
+- Browsing is public. Sign in at `/login` with the admin account from the backend's `.env`
+  (`ADMIN__EMAIL` / `ADMIN__PASSWORD`); there is no registration. The header shows **Sign in** or
+  the signed-in email with **Sign out**.
+- `/account` is protected: signed-out visitors are sent to `/login?redirect=/account` and come back
+  after signing in. The return address must be a path on this site; anything else goes to `/`.
+- Sessions last 60 minutes and are not renewed. The app signs out when the token expires (also
+  checked when the tab regains focus), when the API answers `401`, and when you sign out in another
+  tab. A toast says why.
+- Error messages: wrong credentials show one generic message; too many attempts show how long to
+  wait (`Retry-After`); an unreachable API says so.
+
+**Token storage trade-off.** The session (token, expiry, email, roles) is kept in `localStorage`
+under `trackmgmt.session`, so it survives reloads. Any script running on this origin could read it.
+That risk is reduced by the strict CSP in the nginx config (no inline or third-party scripts),
+rendering user text only as text (no `dangerouslySetInnerHTML`, enforced by lint), short-lived
+tokens, and clearing storage on sign-out. An httpOnly cookie would avoid it but needs CSRF protection
+and a cookie-issuing API; see the backend `DECISIONS.md`.
+
+Code: `src/stores/authStore.ts` (session), `src/lib/authSetup.ts` (API client wiring, other tabs),
+`src/features/auth` (login page, `RequireAuth` guard, account page, header menu, `SessionWatcher`).
+New protected pages go under the `RequireAuth` route in `src/router.tsx`.
+
 ## Project structure
 
 ```text
@@ -77,7 +101,8 @@ src/
   features/     <feature>/components, hooks
   components/   app shell, shared states; ui/ = shadcn primitives
   pages/        route components
-  lib/          query client, formatting, utils
+  lib/          query client, formatting, utils, auth wiring
+  stores/       zustand stores (session)
   test/         MSW server, render helpers, setup
 nginx/          nginx config template for the container
 ```
