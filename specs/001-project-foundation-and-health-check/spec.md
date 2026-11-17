@@ -1,12 +1,22 @@
 # Feature Specification: Foundation & Architecture (Web app)
 
-**Feature Branch**: `001-foundation`
+**Feature Branch**: `001-project-foundation-and-health-check`
 
 **Created**: 2026-11-17
 
 **Status**: Draft
 
 **Input**: User description: "Phase 0 – Foundation & Architecture. Scaffold the single-page web app with no business features: application shell and navigation placeholders, shared UI building blocks, a central API client, automated checks on pull requests, one-command local startup next to the API, and the documentation skeleton. Proof of life: the app shows the API health status."
+
+## Clarifications
+
+### Session 2026-11-17
+
+- Q: What does the health status contain? → A: Overall status, a separate database check result and the check time (from the API contract); the card shows all three.
+- Q: Does the health card refresh by itself? → A: Yes, every 30 seconds while the tab is visible, plus a manual Retry action.
+- Q: Which local addresses are used? → A: Web app at `localhost:8081` (container) or the dev server's default port (no container), API at `localhost:8080`; API calls always use the same-origin `/api` path.
+- Q: Where does the health status live once real screens exist? → A: Phase 0: card on the home page. From Phase 3: home goes to the Track List and health becomes a compact status indicator in the header.
+- Q: Language and text direction? → A: Interface in English (left-to-right); user-entered text (titles, names) renders in its own direction so Arabic script reads correctly.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -99,8 +109,14 @@ link back home.
 
 ### Functional Requirements
 
-- **FR-001**: The app MUST display the API health status with loading, healthy, unhealthy/unreachable
-  and retry states.
+- **FR-001**: The app MUST display the API health status (overall status, database check result,
+  last-checked time) with loading, healthy, unhealthy/unreachable and retry states. It MUST re-check
+  automatically every 30 seconds while the tab is visible. In Phase 0 the status card is the home
+  page; from Phase 3 it moves to a compact header indicator.
+- **FR-010**: The interface MUST be in English (left-to-right) while user-entered text renders in its
+  own direction so Arabic-script titles and names display correctly.
+- **FR-011**: Locally, the containerised app MUST be served at `localhost:8081`; the dev server uses
+  its default port; both reach the API through the same-origin `/api` path.
 - **FR-002**: All API calls MUST go through one central client using a same-origin base path, able
   to attach an access token (used from Phase 1) and translate standard problem responses into
   user-facing notifications or field errors.
