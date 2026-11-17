@@ -143,3 +143,48 @@ storage cleared in another tab, 360 px toast position.
   API call reconciles.
 - The reload tests rebuild the store via `persist.rehydrate()` (the page-load code path), not a full
   module reload.
+
+---
+
+## Change – Sign-out lands on the sign-in page (`fix-sign-out-redirect-and-screen-state`)
+
+### What changed and why
+Reported as "sign-out does not work". Investigation (real Chrome and Edge, headed and headless,
+production build and dev server, several widths, refetch races) showed sign-out worked every time,
+but it left the admin on the status page, which looks the same signed in or out – so it seemed to do
+nothing. Decision (Yousef): every sign-out lands on `/login`.
+
+| Reason | Where the app goes | Explanation |
+|---|---|---|
+| Sign out (header) | `/login` | "Signed out" toast (bottom-right) |
+| Token expired | `/login?redirect=<page>` | "Your session ended…" on the sign-in page |
+| API answered 401 | `/login?redirect=<page>` | "Your session is no longer valid…" |
+| Signed out in another tab | protected page → `/login?redirect=<page>`; public page stays | note on sign-in page / toast |
+
+### Important files
+| Path | Change |
+|---|---|
+| `src/features/auth/signOutDestination.ts` | Destination per reason + the sign-in page messages. |
+| `src/features/auth/components/SessionWatcher.tsx` | The one place that finishes every sign-out: remove `["auth"]` queries → redirect (with `state.signOutReason`) → explain → acknowledge once the new page shows. |
+| `src/features/auth/components/RequireAuth.tsx` | Renders nothing while a sign-out is being handled (no stale content, no competing redirect). |
+| `src/features/auth/components/AuthMenu.tsx` | Sign out = `signOut("manual")`; no navigation of its own. |
+| `src/features/auth/pages/LoginPage.tsx` | Shows the explanation (`role="status"`) after an automatic sign-out. |
+
+### Flow: Sign out on the account page
+Click → `signOut("manual")` clears session + `trackmgmt.session` → header and guard re-render at once
+(guard shows nothing) → `SessionWatcher` removes the `["auth"]` cache, navigates to `/login`
+(replace), toasts "Signed out" → on the new location it acknowledges the reason.
+
+### Key decisions and why
+- **Sign-in page after every sign-out**: a visible change the admin can trust.
+- **One handler for all reasons** instead of navigation in the button: the expiry, 401 and
+  cross-tab paths behave the same way and the guard cannot race the redirect.
+- **Return address only after automatic sign-outs** and only through `safeRedirect` (own pages).
+
+### How to run and test
+`npm test` (95). Header sign-out from the status page and the account page, expiry and 401 on both
+page types, the return after the next sign-in and both cross-tab cases are covered with the real
+router and components.
+
+### Known limitations
+- A manual sign-out does not remember the page; signing in again goes to the status page.

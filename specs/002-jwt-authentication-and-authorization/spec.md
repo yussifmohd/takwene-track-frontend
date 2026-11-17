@@ -15,8 +15,17 @@
 ### Session 2026-11-17 (recommended defaults, confirmed by the user at the analyze checkpoint)
 
 - Q: Which page is protected in Phase 1? → A: "My account" (email, role, session end from the API); the header shows "Sign in" / email + "Sign out". Editing pages join the protected set from Phase 2.
-- Q: What happens at token expiry while the app is open? → A: Automatic sign-out at the expiry time with a "session expired" toast; on a protected page the admin is sent to sign-in with a return link, on a public page they stay where they are.
-- Q: Where does sign-out take the admin? → A: Stay on public pages; leave protected pages for the home page; show "Signed out" toast.
+- Q: What happens at token expiry while the app is open? → A: Automatic sign-out at the expiry time; the admin is sent to the sign-in page, which explains that the session ended, with a return link to the page they were on. *(Amended 2026-11-17, see below.)*
+- Q: Where does sign-out take the admin? → A: To the sign-in page, with a "Signed out" toast. *(Amended 2026-11-17, see below.)*
+
+### Amendment 2026-11-17 (after Phase 1, branch `fix-sign-out-redirect-and-screen-state`)
+
+The first answers kept the admin on public pages and sent them from protected pages to the status
+page. In use, sign-out then looked like it did nothing, because the status page looks the same
+signed in or out (reported as a bug, found to be a UX expectation). Every sign-out now lands on the
+sign-in page: a manual sign-out without a return link; expiry or a rejected session with an
+explanation on the sign-in page and a return link to the page the admin was on (only the app's own
+pages); a sign-out in another tab sends protected pages to sign-in and leaves public pages alone.
 - Q: Rejected credentials UX? → A: One inline form-level message, password cleared and focused, email kept.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -65,15 +74,17 @@ the app signs out and shows a message.
 **Acceptance Scenarios**:
 
 1. **Given** a signed-in admin, **When** the page is reloaded, **Then** they stay signed in.
-2. **Given** a signed-in admin, **When** they choose sign out, **Then** the session is cleared, a
-   confirmation appears and, if they were on a protected page, they are taken to the home page.
+2. **Given** a signed-in admin on any page, **When** they choose sign out, **Then** in one step the
+   session and its stored copy are cleared, signed-in data is dropped, they land on the sign-in
+   page and a "Signed out" confirmation appears.
 3. **Given** a signed-in admin whose token reaches its expiry time while the app is open, **When**
-   that moment passes, **Then** the app signs them out and says the session expired.
+   that moment passes, **Then** the app signs them out and shows the sign-in page explaining that
+   the session ended; signing in again returns them to the page they were on.
 4. **Given** a stored token that has already expired, **When** the app is opened, **Then** the
    admin is treated as signed out.
 5. **Given** any request rejected by the API as "not signed in", **When** the response arrives,
-   **Then** the app signs out, says the session is no longer valid and, on a protected page,
-   sends the admin to sign in with a link back to where they were.
+   **Then** the app signs out and shows the sign-in page explaining that the session is no longer
+   valid, with a link back to where they were.
 
 ---
 

@@ -14,8 +14,11 @@ const sessionSchema = z.object({
 
 export type Session = z.infer<typeof sessionSchema>;
 
-/** Why the last sign-out happened; drives the toast (in memory only). */
-export type SignOutReason = "manual" | "expired" | "rejected";
+/**
+ * Why the last sign-out happened (in memory only). SessionWatcher handles it once – clears signed-in
+ * data, redirects and explains – then acknowledges it.
+ */
+export type SignOutReason = "manual" | "expired" | "rejected" | "other-tab";
 
 interface AuthState {
   session: Session | null;

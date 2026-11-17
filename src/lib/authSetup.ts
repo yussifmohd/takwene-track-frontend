@@ -19,7 +19,7 @@ export function setupAuth(target: Window = window) {
     if (event.key !== null && event.key !== SESSION_STORAGE_KEY) return;
     if (localStorage.getItem(SESSION_STORAGE_KEY) === null) {
       // Signed out (or cleared) elsewhere: drop ours without touching storage again.
-      if (useAuthStore.getState().session) useAuthStore.setState({ session: null, signOutReason: "manual" });
+      if (useAuthStore.getState().session) useAuthStore.setState({ session: null, signOutReason: "other-tab" });
     } else {
       // Signed in elsewhere: read it through the validating storage (an invalid entry is removed).
       void useAuthStore.persist.rehydrate();
