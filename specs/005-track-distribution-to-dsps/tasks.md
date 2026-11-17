@@ -37,7 +37,7 @@ description: "Task list for Phase 4 – Track Distribution to DSPs (Web app)"
 ## Phase 4: User Story 2 – Distribute (P1)
 
 - [ ] T007 [P] [US2] Tests `DistributeDialog` via the page: shown only when `canDistribute` and admin; options (selectable / "Send again" / disabled with status); button disabled until a choice, names the count; send → progress, closes, toast, rows pending, badge distributed; no-op toast; "Sent to every platform" disabled state; 409 → toast + refetch + close; 401 → sign-out to `/login?redirect=`; platforms load error → Retry; keyboard (Escape closes, focus returns)
-- [ ] T008 [US2] `DistributeDialog` + Distribute button on `TrackDetailPage`; `StatusControl` without the distributed confirmation; remove `alert-dialog.tsx` if unused
+- [ ] T008 [US2] `DistributeDialog` + Distribute button on `TrackDetailPage`; `StatusControl` without the distributed confirmation; delete `src/components/ui/alert-dialog.tsx` (A6)
 - [ ] T009 [P] [US2] Tests: submitted track offers only "Withdraw to draft" (from `allowedNextStatuses`); "Mark as distributed" never rendered
 
 ---
@@ -53,7 +53,7 @@ description: "Task list for Phase 4 – Track Distribution to DSPs (Web app)"
 
 - [ ] T012 `npm run lint && npm run typecheck && npm test && npm run build`; bundle < 250 kB gzip; tests 3× green
 - [ ] T013 Real-browser run (scratch script) on the compose stack: quickstart 1–8, desktop light + 400 px dark
-- [ ] T014 README (deliveries, Distribute, answers, removed texts, existing data), `docs/walkthrough.md` Phase 4, `Memory.md` (repo + master)
+- [ ] T014 README rewritten to the README rule (finished product, no phase history; incl. the reset note for databases created before distributions and why PATCH → distributed is refused); `docs/walkthrough.md` Phase 4; `Memory.md` (repo + master)
 - [ ] T015 Frontend section of `docs/ai-log.md` Phase 4 in the backend repo (on the open backend PR branch if still open, else a docs PR)
 
 ## Dependencies

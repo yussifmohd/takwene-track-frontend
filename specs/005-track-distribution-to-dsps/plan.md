@@ -9,7 +9,7 @@
 ## Summary
 
 The track page gets a deliveries table (platform, status badge, sent and answer times; stacked on
-phones). Admins get a **Distribute** dialog (checkboxes of the three platforms; pending/live disabled,
+phones). Admins get a **Distribute** dialog (a checkbox per platform; pending/live disabled,
 rejected "Send again") and, on pending rows, **Mark live** / **Mark rejected**. "Mark as distributed"
 and the "without platform deliveries" text are removed; status buttons still come only from
 `allowedNextStatuses` (the API no longer offers distributed by status change). Types are regenerated
@@ -82,9 +82,11 @@ src/features/tracks/
    the word; sent time and answer time via `formatDateTime` in a `<time>`; "Waiting" while pending.
 5. **Answer buttons** (R5, Q5): "Mark live" / "Mark rejected" on pending rows, no confirmation; a
    one-line note "Platform answers are simulated." above the table for admins.
-6. **Removed** (FR-002): `STATUS_ACTION.distributed`, the confirm dialog in `StatusControl` and the
-   "without platform deliveries" text; `alert-dialog.tsx` stays unused? → removed if nothing uses it.
-7. **Existing data** (spec): handled by the API migration; the page needs no special case.
+6. **Removed** (FR-002, A6): `STATUS_ACTION.distributed`, the confirm dialog in `StatusControl`, the
+   "without platform deliveries" text, and `src/components/ui/alert-dialog.tsx` (its only user was that
+   confirmation).
+7. **Existing data** (spec, Q1): no special case in the UI; README says to reset databases created
+   before distributions (`docker compose down -v` in the backend repo).
 
 ## Complexity Tracking
 

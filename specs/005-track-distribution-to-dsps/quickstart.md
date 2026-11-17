@@ -1,6 +1,6 @@
 # Quickstart: Distribution (web app, manual)
 
-1. Backend 005 stack up (a Phase 3 track marked distributed is now submitted); `docker compose up --build` here.
+1. Backend stack up from a fresh database (`docker compose down -v` there first); `docker compose up --build` here.
 2. Signed out: open a track – deliveries table or "Not sent to any platform yet."; no Distribute, no answer buttons.
 3. Sign in; open a submitted track: status control shows only "Withdraw to draft"; Distribute is enabled.
 4. Distribute → choose Spotify and Apple Music → "Send to 2 platforms" → pending rows with sent times; badge distributed.

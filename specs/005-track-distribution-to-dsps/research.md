@@ -7,7 +7,7 @@
 ## R2 – Choosing platforms
 - Decision: native checkboxes in a radix Dialog; options from `GET /api/dsps`; pending/live disabled
   with a status label; rejected labelled "Send again"; nothing preselected.
-- Alternatives: a multi-select combobox – three options don't need search; checkboxes are the most
+- Alternatives: a multi-select combobox – a handful of platforms doesn't need search; checkboxes are the most
   accessible multi-choice control.
 
 ## R3 – Updating the page
