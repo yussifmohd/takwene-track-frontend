@@ -27,3 +27,11 @@ export function formatTimeUntil(value: string | Date, now = Date.now()) {
   if (minutes < 1) return "in less than a minute";
   return minutes === 1 ? "in 1 minute" : `in ${minutes} minutes`;
 }
+
+const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
+/** "17 Nov 2026" in the viewer's time zone. */
+export function formatDate(value: string | Date) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return Number.isNaN(date.getTime()) ? "" : dateFormat.format(date);
+}
