@@ -15,9 +15,9 @@ import { SIGN_OUT_MESSAGES, type SignOutNavigationState } from "../signOutDestin
 import { loginSchema, type LoginValues } from "../schemas";
 
 const UNLOCKS = [
-  "Add, edit and remove tracks and their ISRCs",
-  "Manage artists and their details",
-  "Send tracks to Spotify, Apple Music and YouTube Music",
+  "Add tracks with their ISRC, genre and release date",
+  "Move tracks from draft to submitted to distributed",
+  "Add artists and see their contact emails",
 ] as const;
 
 /** One sentence for whatever went wrong, without revealing which part of the credentials failed. */
