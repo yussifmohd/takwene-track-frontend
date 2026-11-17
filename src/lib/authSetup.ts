@@ -14,12 +14,14 @@ export function setupAuth(target: Window = window) {
     },
   });
 
+  // key === null means another tab cleared all of this origin's storage (localStorage.clear()).
   const onStorage = (event: StorageEvent) => {
-    if (event.key !== SESSION_STORAGE_KEY) return;
-    if (event.newValue === null) {
-      // Another tab signed out: drop ours without touching storage again.
+    if (event.key !== null && event.key !== SESSION_STORAGE_KEY) return;
+    if (localStorage.getItem(SESSION_STORAGE_KEY) === null) {
+      // Signed out (or cleared) elsewhere: drop ours without touching storage again.
       if (useAuthStore.getState().session) useAuthStore.setState({ session: null, signOutReason: "manual" });
     } else {
+      // Signed in elsewhere: read it through the validating storage (an invalid entry is removed).
       void useAuthStore.persist.rehydrate();
     }
   };

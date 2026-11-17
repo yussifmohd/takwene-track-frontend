@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { isSessionValid, useAuthStore } from "@/stores/authStore";
+import { endExpiredSession, useAuthStore } from "@/stores/authStore";
 import { AUTH_QUERY_KEY } from "../hooks/useLoginMutation";
 
 // setTimeout overflows above ~24.8 days; sessions are 60 minutes, but stay safe.
@@ -14,23 +14,18 @@ const MAX_TIMEOUT_MS = 2_147_483_647;
 export function SessionWatcher() {
   const session = useAuthStore((s) => s.session);
   const signOutReason = useAuthStore((s) => s.signOutReason);
-  const signOut = useAuthStore((s) => s.signOut);
   const acknowledgeSignOut = useAuthStore((s) => s.acknowledgeSignOut);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!session) return;
-    const delay = Date.parse(session.expiresAt) - Date.now();
-    if (delay <= 0) {
-      signOut("expired");
-      return;
-    }
-    const timer = window.setTimeout(() => signOut("expired"), Math.min(delay, MAX_TIMEOUT_MS));
+    if (endExpiredSession()) return;
+    // Fires at expiry (+ a small margin so the clock has certainly passed it).
+    const delay = Date.parse(session.expiresAt) - Date.now() + 50;
+    const timer = window.setTimeout(() => void endExpiredSession(), Math.min(delay, MAX_TIMEOUT_MS));
 
     // Timers are throttled in background tabs and paused during sleep: re-check on return.
-    const check = () => {
-      if (!isSessionValid(useAuthStore.getState().session)) signOut("expired");
-    };
+    const check = () => void endExpiredSession();
     const onVisibility = () => {
       if (document.visibilityState === "visible") check();
     };
@@ -41,7 +36,7 @@ export function SessionWatcher() {
       window.removeEventListener("focus", check);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [session, signOut]);
+  }, [session]);
 
   useEffect(() => {
     if (!session) queryClient.removeQueries({ queryKey: AUTH_QUERY_KEY });
