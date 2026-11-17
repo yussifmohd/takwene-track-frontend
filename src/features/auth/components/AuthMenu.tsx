@@ -28,8 +28,10 @@ export function AuthMenu() {
   }
 
   const handleSignOut = async () => {
-    // Leave a protected page first, so the guard does not send us to the sign-in page.
-    if (onProtectedPage) await navigate("/", { replace: true });
+    // Leave a protected page first, so the guard does not send us to the sign-in page. flushSync
+    // commits the new page before the sign-out renders (navigations are otherwise transitions,
+    // which the synchronous store update would overtake).
+    if (onProtectedPage) await navigate("/", { replace: true, flushSync: true });
     signOut("manual");
     toast.success("Signed out");
   };
