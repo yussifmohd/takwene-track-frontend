@@ -35,3 +35,16 @@ export function formatDate(value: string | Date) {
   const date = typeof value === "string" ? new Date(value) : value;
   return Number.isNaN(date.getTime()) ? "" : dateFormat.format(date);
 }
+
+const calendarDateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+
+/**
+ * "2026-12-01" → "1 Dec 2026". Release dates are calendar dates without a time zone, so they are
+ * formatted in UTC: `new Date("2026-12-01")` shown in local time would be 30 Nov west of Greenwich.
+ */
+export function formatCalendarDate(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return Number.isNaN(date.getTime()) ? value : calendarDateFormat.format(date);
+}

@@ -33,10 +33,13 @@ describe("RequireAuth", () => {
     expect(await screen.findByRole("heading", { name: "Your account" })).toBeInTheDocument();
   });
 
-  it("never guards the public status page", async () => {
+  it("never guards the public catalogue or status page", async () => {
     const { router } = renderRoutes(routes, { route: "/" });
-    expect(await screen.findByRole("heading", { name: "System status" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Tracks", level: 1 })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/");
+    await router.navigate("/status");
+    expect(await screen.findByRole("heading", { name: "System status" })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe("/status");
   });
 
   it("sends a signed-out visitor from Add artist to sign-in and back after sign-in", async () => {

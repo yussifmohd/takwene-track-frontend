@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useIsAdmin } from "@/stores/authStore";
 import { ArtistList, ArtistListSkeleton } from "../components/ArtistList";
-import { Pagination } from "../components/Pagination";
+import { Pagination } from "@/components/Pagination";
 import { useArtistsQuery } from "../hooks/useArtistsQuery";
 import { usePageParam } from "../hooks/usePageParam";
 

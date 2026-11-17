@@ -8,7 +8,8 @@ to the API in the backend repo:
   [backend docs/ai-log.md](https://github.com/yussifmohd/takwene-track-backend/blob/main/docs/ai-log.md)
 - Specs per phase: [specs/](specs/)
 
-> Status: Phase 2 – system status, admin sign-in, artists (list + add). Tracks arrive in a later phase.
+> Status: Phase 3 – track catalogue (home page) with filters, track pages, add track and status changes;
+> artists (list + add); admin sign-in; service status. Sending tracks to platforms arrives in Phase 4.
 
 ## Stack
 
@@ -109,12 +110,35 @@ New protected pages go under the `RequireAuth` route in `src/router.tsx`.
   "Palestine". The code list (`src/lib/countries.ts`) is the API's list; a test compares its SHA-256
   with the backend's constant.
 
+## Tracks
+
+- `/` (public) is the catalogue: title, artist, genre, status and release date, newest release first,
+  20 per page. **Filters and page live in the address** (`/?status=submitted&genre=R%26B&artistId=…&page=2`):
+  reloads, shared links and Back keep them. Changing a filter returns to page 1; values the API would
+  refuse (an unknown status or genre, an artist id that is not a GUID) are ignored, not sent.
+- The artist filter (and the add-track form) uses a searchable picker: focus lists the first 10
+  artists by name, typing searches the API after a short pause (`?search=`, any script), arrows / Enter
+  / Escape work. A filter from the address shows the artist's name (or "Unknown artist").
+- `/tracks/:id` (public): all details, the ISRC hyphenated, and a **Distributions** section. Until
+  Phase 4 it is empty and says "Not sent to any platform yet." – or, for a track set to distributed
+  with the status change alone, "Marked as distributed without platform deliveries recorded."
+- **Status (admins)**: the track page offers only the moves the API lists as allowed next – Submit
+  (draft), Withdraw to draft / Mark as distributed (submitted). Marking as distributed asks first
+  ("Distributed is final"). If someone else changed the track meanwhile, the API answers 409; the page
+  shows why and reloads the current status.
+- `/tracks/new` (admin only, via **Add track**): Title (any script), Artist (picker), ISRC
+  (`CC-XXX-YY-NNNNN`, with or without hyphens, any case), Genre (fixed list) and Release date (1900–2100,
+  future dates fine). Client checks match the API; a duplicate ISRC appears under ISRC. On success the
+  new track's page opens with "Track added".
+- **Service status** moved from the home page to `/status`; the header shows it as a dot (green /
+  amber / red, with the state in its accessible name), refreshed every 30 seconds.
+
 ## Project structure
 
 ```text
 src/
   api/          client.ts (fetch wrapper), problem.ts (ProblemDetails), schema.d.ts (generated), <feature>.ts
-  features/     <feature>/components, hooks
+  features/     <feature>/components, hooks, pages (tracks, artists, auth, health)
   components/   app shell, shared states; ui/ = shadcn primitives
   pages/        route components
   lib/          query client, formatting, utils, auth wiring

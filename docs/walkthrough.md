@@ -244,3 +244,64 @@ light and 400 px dark, no horizontal overflow, no console errors.
 - No edit/delete/detail/search for artists (no API for them yet).
 - After adding, the list opens on page 1; the new artist may sort onto another page (the toast names it).
 - Unsaved form input is discarded when leaving the page (no warning).
+
+## Phase 3 – Track catalogue (`004-track-catalog-with-filters-and-status`)
+
+### What was built
+The catalogue is now the home page: filters for status, genre and artist (all in the address), paging,
+designed loading / empty / error states. Each track has a page with its details, an admin-only status
+control and a distributions section (empty until Phase 4). Admins add tracks with a searchable artist
+picker and ISRC checks. Service health became a dot in the header that links to `/status`.
+
+### Important files
+| Path | What it does |
+|---|---|
+| `src/api/tracks.ts` | `listTracks`, `getTrack`, `createTrack`, `changeTrackStatus`; types from the generated contract. |
+| `src/api/artists.ts` | Adds `searchArtists` (`?search=`, 10 results) and `getArtist`. |
+| `src/features/tracks/catalog.ts` | Genres, statuses, labels and button texts, typed against the contract unions (a new genre or status fails typecheck). |
+| `src/features/tracks/isrc.ts` | ISRC shape check and hyphenated form – the same rule as the API. |
+| `src/features/tracks/schemas.ts` | zod form rules: title 1–200 code points, artist, ISRC, genre, a real date 1900–2100. |
+| `src/features/tracks/hooks/useTrackFilters.ts` | Filters + page from/to the address; invalid values ignored; a filter change drops the page. |
+| `src/features/tracks/hooks/useTrackQueries.ts` | List (previous page kept while loading), detail, create (seeds the detail cache) and status mutations. |
+| `src/features/tracks/components/TrackList.tsx` | Table from `sm`, stacked rows on phones; titles link to the track; skeleton of the same shape. |
+| `src/features/tracks/components/StatusBadge.tsx` | Status as text plus a three-step rail (draft ●○○ → distributed ●●●). |
+| `src/features/tracks/components/StatusControl.tsx` | Buttons for `allowedNextStatuses`, confirm dialog for distributed, 409 → toast + refetch. |
+| `src/features/tracks/components/DistributionsSection.tsx` | Empty state worded by status; list once Phase 4 records deliveries. |
+| `src/features/artists/components/ArtistPicker.tsx` | WAI-ARIA combobox: first 10 on focus, debounced search, keyboard, clear button. |
+| `src/features/health/components/StatusDot.tsx` | Header dot from the existing health query, links to `/status`. |
+| `src/components/ui/alert-dialog.tsx` | shadcn alert dialog, written by hand (the CLI adds the unrelated `cn` package). |
+
+### Flow: changing a track's status
+Track page (admin) → buttons from `allowedNextStatuses` → "Mark as distributed" opens the confirm
+dialog first → `PATCH /api/tracks/{id}/status` → 200: the response replaces the cached detail, lists
+are invalidated, toast ("Track submitted" …) → 409 (already changed, not allowed, or a lost race):
+toast with the API's reason, the detail is reloaded so the right buttons show → 401: the Phase 1
+sign-out, back to this page after signing in.
+
+### Key decisions and why
+- **The API decides which moves are allowed** (`allowedNextStatuses`); the page only shows them, so the
+  rules live in one place (the backend domain).
+- **Filters in the address** so reloads, Back and shared links keep the view; unknown values are
+  ignored instead of producing a 400.
+- **Own combobox** for the artist picker instead of a package: about 150 lines, follows the WAI-ARIA
+  pattern, no new dependency or license to check.
+- **Release dates formatted in UTC**: they are calendar dates; local-time formatting would show the day
+  before west of Greenwich (tested with `TZ=America/Los_Angeles`).
+- **Tracks stay cached after sign-out** (no personal data); artist caches are still dropped (emails).
+- **Status vs distributions**: a track distributed by the status change alone has no deliveries and
+  the page says so; Phase 4 adds deliveries without changing this page's rules.
+
+### How to run and test
+Backend stack up, then `docker compose up --build` here and open http://localhost:8081/.
+Tests: `npm test` (200). Real-browser check (Edge over DevTools, scratch script) on the compose stack
+with 28 artists and 24 tracks: visitor catalogue, filters (and invalid ones), artist picker search and
+pick, reload keeps the artist name, track page, unknown track, sign-in from Add track and back, empty
+submit, duplicate ISRC under ISRC, create, submit, confirm and mark as distributed, admin paging, the
+status dot, sign-out – desktop light and 400 px dark, no horizontal overflow, no app console errors.
+
+### Known limitations
+- No edit or delete for tracks (not in the assignment's API).
+- Filters are single-valued (one status, one genre, one artist).
+- The artist picker shows at most 10 matches; typing more of the name narrows them.
+- Unsaved form input is discarded when leaving the page (no warning).
+
