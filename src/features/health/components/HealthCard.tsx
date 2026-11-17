@@ -48,7 +48,7 @@ function HealthReportView({ report, onRefresh, refreshing }: { report: HealthRep
   const copy = COPY[report.status];
   return (
     <>
-      <CardHeader className="flex flex-row items-end gap-5 border-b py-6">
+      <CardHeader className="flex flex-col items-start gap-4 border-b py-6 sm:flex-row sm:items-end sm:gap-5">
         <LevelMeter state={report.status} className="shrink-0" />
         <div aria-live="polite" className="min-w-0">
           <h2 className="text-2xl font-semibold tracking-tight">{copy.title}</h2>
@@ -92,9 +92,9 @@ function HealthCardSkeleton() {
   return (
     <div data-testid="health-skeleton">
       <span className="sr-only">Checking system status</span>
-      <div className="flex items-end gap-5 border-b px-6 py-6">
+      <div className="flex flex-col items-start gap-4 border-b px-6 py-6 sm:flex-row sm:items-end sm:gap-5">
         <LevelMeterSkeleton />
-        <div className="flex-1 space-y-2">
+        <div className="w-full flex-1 space-y-2">
           <Skeleton className="h-7 w-56 max-w-full" />
           <Skeleton className="h-4 w-72 max-w-full" />
         </div>
