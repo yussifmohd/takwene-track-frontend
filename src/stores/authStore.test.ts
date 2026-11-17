@@ -37,6 +37,21 @@ describe("authStore", () => {
     expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
   });
 
+  it("storage stays empty after sign-out even when state changes again", () => {
+    useAuthStore.getState().signIn(makeSession());
+    useAuthStore.getState().signOut("manual");
+
+    useAuthStore.getState().acknowledgeSignOut();
+
+    expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it("ignores unreadable stored JSON", async () => {
+    localStorage.setItem(SESSION_STORAGE_KEY, "{not json");
+    await useAuthStore.persist.rehydrate();
+    expect(useAuthStore.getState().session).toBeNull();
+  });
+
   it("signOut while already signed out keeps the earlier reason", () => {
     useAuthStore.getState().signIn(makeSession());
     useAuthStore.getState().signOut("rejected");

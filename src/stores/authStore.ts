@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist, type PersistStorage, type StorageValue } from "zustand/middleware";
 
 export const SESSION_STORAGE_KEY = "trackmgmt.session";
 const SESSION_VERSION = 1;
@@ -26,6 +26,29 @@ interface AuthState {
   acknowledgeSignOut: () => void;
 }
 
+type PersistedAuth = { session: Session | null };
+
+/**
+ * localStorage with one rule: no session → no key. Any later state write (e.g. clearing the
+ * sign-out reason) can then never leave a stale entry behind, and other tabs see a removal.
+ */
+const sessionStorageAdapter: PersistStorage<PersistedAuth> = {
+  getItem: (name) => {
+    const raw = localStorage.getItem(name);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as StorageValue<PersistedAuth>;
+    } catch {
+      return null;
+    }
+  },
+  setItem: (name, value) => {
+    if (value.state.session) localStorage.setItem(name, JSON.stringify(value));
+    else localStorage.removeItem(name);
+  },
+  removeItem: (name) => localStorage.removeItem(name),
+};
+
 export function isSessionValid(session: Session | null, now = Date.now()): session is Session {
   return session !== null && Date.parse(session.expiresAt) > now;
 }
@@ -42,21 +65,18 @@ function readPersistedSession(persisted: unknown): Session | null {
  * readable by script on this origin; mitigated by CSP, no HTML injection, 60-minute tokens).
  */
 export const useAuthStore = create<AuthState>()(
-  persist(
+  persist<AuthState, [], [], PersistedAuth>(
     (set) => ({
       session: null,
       signOutReason: null,
       signIn: (session) => set({ session, signOutReason: null }),
-      signOut: (reason) => {
-        set((state) => (state.session ? { session: null, signOutReason: reason } : state));
-        useAuthStore.persist.clearStorage();
-      },
+      signOut: (reason) => set((state) => (state.session ? { session: null, signOutReason: reason } : state)),
       acknowledgeSignOut: () => set({ signOutReason: null }),
     }),
     {
       name: SESSION_STORAGE_KEY,
       version: SESSION_VERSION,
-      storage: createJSONStorage(() => localStorage),
+      storage: sessionStorageAdapter,
       partialize: (state) => ({ session: state.session }),
       // Data from another version is discarded rather than trusted.
       migrate: () => ({ session: null }),
