@@ -293,7 +293,7 @@ sign-out, back to this page after signing in.
 
 ### How to run and test
 Backend stack up, then `docker compose up --build` here and open http://localhost:8081/.
-Tests: `npm test` (198). Real-browser check (Edge over DevTools, scratch script) on the compose stack
+Tests: `npm test` (200). Real-browser check (Edge over DevTools, scratch script) on the compose stack
 with 28 artists and 24 tracks: visitor catalogue, filters (and invalid ones), artist picker search and
 pick, reload keeps the artist name, track page, unknown track, sign-in from Add track and back, empty
 submit, duplicate ISRC under ISRC, create, submit, confirm and mark as distributed, admin paging, the

@@ -38,5 +38,5 @@ openapi-typescript 7.13.0 · images node:26.13.1-alpine, nginxinc/nginx-unprivil
 - Fix `fix-sign-out-session-state-after-reload` (after Phase 1): stale stored session after reload, header covered by toasts, cross-tab clear; 93 tests.
 - Change `fix-sign-out-redirect-and-screen-state`: sign-out lands on `/login` (reported bug was a UX expectation; not reproducible as a failure); 95 tests.
 - Phase 2 (`003-artists-and-dsps-management`): public artists list (paging in URL, countries by name, emails admin-only), admin-only Add artist with client + server field errors, role-aware guard; 132 tests; bundle 181 kB gzip.
-- Phase 3 (`004-track-catalog-with-filters-and-status`): tracks catalogue at `/` (filters in URL), track page with admin status control + distributions empty state, add track with artist picker and ISRC checks, header status dot → `/status`; 198 tests; bundle 200.7 kB gzip.
+- Phase 3 (`004-track-catalog-with-filters-and-status`): tracks catalogue at `/` (filters in URL), track page with admin status control + distributions empty state, add track with artist picker and ISRC checks, header status dot → `/status`; 200 tests; bundle 200.7 kB gzip.
 - Next: Phase 4 – distribution (`005-track-distribution-to-dsps`).
