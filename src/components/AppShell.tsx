@@ -1,11 +1,10 @@
-import { NavLink, Outlet } from "react-router";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { AuthMenu } from "@/features/auth/components/AuthMenu";
 import { SessionWatcher } from "@/features/auth/components/SessionWatcher";
 import { cn } from "@/lib/utils";
 import { useIsAuthenticated } from "@/stores/authStore";
+import { StatusDot } from "@/features/health/components/StatusDot";
 import { BrandMark } from "./BrandMark";
-
-const COMING_SOON = ["Tracks"] as const;
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -15,6 +14,8 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppShell() {
   const isAuthenticated = useIsAuthenticated();
+  const { pathname } = useLocation();
+  const tracksCurrent = pathname === "/" || pathname.startsWith("/tracks/");
   return (
     <div className="min-h-dvh">
       <SessionWatcher />
@@ -34,33 +35,21 @@ export function AppShell() {
             </span>
           </NavLink>
           <nav aria-label="Main" className="-mx-3 flex w-[calc(100%+1.5rem)] items-center gap-1 overflow-x-auto px-3 text-sm sm:mx-0 sm:w-auto sm:px-0">
-            <NavLink to="/" end className={navLinkClass}>
-              Status
-            </NavLink>
+            {/* "/" never matches /tracks/:id in NavLink, so Tracks computes its own current state. */}
+            <Link to="/" aria-current={tracksCurrent ? "page" : undefined} className={navLinkClass({ isActive: tracksCurrent })}>
+              Tracks
+            </Link>
             <NavLink to="/artists" className={navLinkClass}>
               Artists
             </NavLink>
-            {COMING_SOON.map((label) => (
-              <span
-                key={label}
-                aria-disabled="true"
-                title="Coming soon"
-                className="cursor-not-allowed whitespace-nowrap rounded-md px-3 py-1.5 text-muted-foreground"
-              >
-                {label}
-                <span className="sr-only"> (coming soon)</span>
-                <span aria-hidden className="ml-1.5 hidden rounded-full bg-muted px-1.5 py-px text-[0.6875rem] sm:inline">
-                  soon
-                </span>
-              </span>
-            ))}
             {isAuthenticated ? (
               <NavLink to="/account" className={navLinkClass}>
                 My account
               </NavLink>
             ) : null}
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <StatusDot />
             <AuthMenu />
           </div>
         </div>

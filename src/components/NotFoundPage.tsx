@@ -8,10 +8,10 @@ export function NotFoundPage() {
       title="Page not found"
       description={
         <>
-          There is nothing at this address. Check the link, or go back to the status page.
+          There is nothing at this address. Check the link, or go back to the catalogue.
           <span className="mt-4 block">
             <Button asChild>
-              <Link to="/">Go to status page</Link>
+              <Link to="/">Go to tracks</Link>
             </Button>
           </span>
         </>
