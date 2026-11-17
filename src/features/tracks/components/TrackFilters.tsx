@@ -5,11 +5,9 @@ import { useArtistQuery } from "@/features/artists/hooks/useArtistLookup";
 import { isApiError } from "@/api/problem";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { GENRES, STATUS_LABEL, STATUSES, isGenre, isTrackStatus } from "../catalog";
 import type { TrackFilters as Filters } from "../hooks/useTrackFilters";
-
-const selectClass =
-  "h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 /** Status, genre and artist filters (all in the address). The artist filter shows the artist's name. */
 export function TrackFilters({
@@ -36,9 +34,8 @@ export function TrackFilters({
     <div className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-[repeat(3,minmax(0,1fr))_auto] sm:items-end">
       <div className="grid gap-1.5">
         <Label htmlFor="filter-status">Status</Label>
-        <select
+        <NativeSelect
           id="filter-status"
-          className={selectClass}
           value={filters.status ?? ""}
           onChange={(event) => onChange("status", isTrackStatus(event.target.value) ? event.target.value : undefined)}
         >
@@ -48,13 +45,12 @@ export function TrackFilters({
               {STATUS_LABEL[status]}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
       <div className="grid gap-1.5">
         <Label htmlFor="filter-genre">Genre</Label>
-        <select
+        <NativeSelect
           id="filter-genre"
-          className={selectClass}
           value={filters.genre ?? ""}
           onChange={(event) => onChange("genre", isGenre(event.target.value) ? event.target.value : undefined)}
         >
@@ -64,7 +60,7 @@ export function TrackFilters({
               {genre}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
       <div className="grid gap-1.5">
         <Label htmlFor="filter-artist">Artist</Label>
