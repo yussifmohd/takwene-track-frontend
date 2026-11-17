@@ -6,7 +6,7 @@ export function HomePage() {
     <>
       <PageHeader
         title="System status"
-        description="Track and artist management arrive in the next releases. For now, this page shows whether the service is ready."
+        description="Whether the API and its database are ready. Tracks arrive in a later release."
       />
       <div className="max-w-2xl">
         <HealthCard />

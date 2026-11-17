@@ -16,15 +16,14 @@ describe("AppShell", () => {
     expect(await screen.findByRole("heading", { name: "System status" })).toBeInTheDocument();
   });
 
-  it("marks Tracks and Artists as coming soon (not links)", () => {
+  it("marks Tracks as coming soon (not a link) and links Artists for everyone", () => {
     renderRoutes(routes);
     const nav = screen.getByRole("navigation", { name: "Main" });
 
-    for (const label of ["Tracks", "Artists"]) {
-      const item = within(nav).getByText(label, { exact: false });
-      expect(item).toHaveAttribute("aria-disabled", "true");
-      expect(within(nav).queryByRole("link", { name: new RegExp(label) })).not.toBeInTheDocument();
-    }
+    const tracks = within(nav).getByText("Tracks", { exact: false });
+    expect(tracks).toHaveAttribute("aria-disabled", "true");
+    expect(within(nav).queryByRole("link", { name: /Tracks/ })).not.toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Artists" })).toHaveAttribute("href", "/artists");
   });
 
   it("shows My account in the main navigation only when signed in", () => {

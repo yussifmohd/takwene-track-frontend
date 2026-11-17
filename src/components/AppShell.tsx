@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useIsAuthenticated } from "@/stores/authStore";
 import { BrandMark } from "./BrandMark";
 
-const COMING_SOON = ["Tracks", "Artists"] as const;
+const COMING_SOON = ["Tracks"] as const;
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -36,6 +36,9 @@ export function AppShell() {
           <nav aria-label="Main" className="-mx-3 flex w-[calc(100%+1.5rem)] items-center gap-1 overflow-x-auto px-3 text-sm sm:mx-0 sm:w-auto sm:px-0">
             <NavLink to="/" end className={navLinkClass}>
               Status
+            </NavLink>
+            <NavLink to="/artists" className={navLinkClass}>
+              Artists
             </NavLink>
             {COMING_SOON.map((label) => (
               <span
