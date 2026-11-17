@@ -1,0 +1,21 @@
+# Web app (nginx). Start the backend stack first: it creates the trackmgmt-net network
+# and the `api` service that nginx proxies /api to.
+name: trackmgmt-frontend
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: trackmgmt-web:local
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: http://api:8080
+    ports:
+      - "8081:8081"
+    networks:
+      - trackmgmt-net
+
+networks:
+  trackmgmt-net:
+    external: true
