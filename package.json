@@ -13,7 +13,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest",
-    "gen:api": "openapi-typescript ../backend/specs/004-track-catalog-with-filters-and-status/contracts/openapi.json -o src/api/schema.d.ts && node scripts/stamp-schema.mjs ../backend/specs/004-track-catalog-with-filters-and-status/contracts/openapi.json"
+    "gen:api": "openapi-typescript ../backend/specs/005-track-distribution-to-dsps/contracts/openapi.json -o src/api/schema.d.ts && node scripts/stamp-schema.mjs ../backend/specs/004-track-catalog-with-filters-and-status/contracts/openapi.json"
   },
   "dependencies": {
     "@hookform/resolvers": "7.0.1",

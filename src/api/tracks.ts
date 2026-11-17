@@ -1,9 +1,10 @@
-import type { Genre, TrackStatus } from "@/features/tracks/catalog";
+import type { DistributionAnswer, Genre, TrackStatus } from "@/features/tracks/catalog";
 import { apiFetch } from "./client";
 import type { components } from "./schema";
 
 export type TrackListItem = components["schemas"]["TrackListItemDto"];
 export type TrackDetail = components["schemas"]["TrackDetailDto"];
+export type TrackDistribution = components["schemas"]["TrackDistributionDto"];
 export type TracksPage = components["schemas"]["PagedResultOfTrackListItemDto"];
 
 export interface TrackListParams {
@@ -41,4 +42,17 @@ export function createTrack(body: CreateTrackRequest) {
 
 export function changeTrackStatus(id: string, status: TrackStatus) {
   return apiFetch<TrackDetail>(`/tracks/${encodeURIComponent(id)}/status`, { method: "PATCH", body: { status } });
+}
+
+/** Sends the track to the platforms; the answer is the updated track (also when nothing changed). */
+export function distributeTrack(id: string, dspIds: string[]) {
+  return apiFetch<TrackDetail>(`/tracks/${encodeURIComponent(id)}/distribute`, { method: "POST", body: { dspIds } });
+}
+
+/** Records a platform's (simulated) answer for a pending delivery. */
+export function recordDistributionAnswer(id: string, dspId: string, status: DistributionAnswer) {
+  return apiFetch<TrackDetail>(`/tracks/${encodeURIComponent(id)}/distributions/${encodeURIComponent(dspId)}`, {
+    method: "PATCH",
+    body: { status },
+  });
 }

@@ -156,8 +156,42 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Change a track's status: draft → submitted, submitted → draft or distributed (admin only) */
+        /** Change a track's status: draft → submitted, submitted → draft (admin only). Distributed is reached through Distribute. */
         patch: operations["ChangeTrackStatus"];
+        trace?: never;
+    };
+    "/api/tracks/{id}/distribute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a submitted or distributed track to platforms; rejected deliveries are sent again (admin only) */
+        post: operations["DistributeTrack"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tracks/{id}/distributions/{dspId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Record a platform's simulated answer for a pending delivery: live or rejected (admin only) */
+        patch: operations["RecordDistributionAnswer"];
         trace?: never;
     };
 }
@@ -197,6 +231,11 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
         };
+        DistributeTrackRequest: {
+            dspIds: null | string[];
+        };
+        /** @enum {unknown} */
+        DistributionStatus: "pending" | "live" | "rejected";
         DspDto: {
             /** Format: uuid */
             id: string;
@@ -268,6 +307,10 @@ export interface components {
             detail?: null | string;
             instance?: null | string;
         };
+        RecordDistributionAnswerRequest: {
+            /** @enum {null|string} */
+            status: "live" | "rejected" | null;
+        };
         TrackDetailDto: {
             /** Format: uuid */
             id: string;
@@ -286,15 +329,19 @@ export interface components {
             /** Format: date-time */
             updatedAtUtc: null | string;
             allowedNextStatuses: components["schemas"]["TrackStatus"][];
+            canDistribute: boolean;
             distributions: components["schemas"]["TrackDistributionDto"][];
         };
         TrackDistributionDto: {
             /** Format: uuid */
             dspId: string;
             dspName: string;
-            status: string;
+            status: components["schemas"]["DistributionStatus"];
             /** Format: date-time */
-            updatedAtUtc: string;
+            submittedAtUtc: string;
+            /** Format: date-time */
+            answeredAtUtc: null | string;
+            allowedAnswers: components["schemas"]["DistributionStatus"][];
         };
         TrackListItemDto: {
             /** Format: uuid */
@@ -720,6 +767,150 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ChangeTrackStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackDetailDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Missing, invalid or expired access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The token lacks the required role. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DistributeTrack: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DistributeTrackRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrackDetailDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Missing, invalid or expired access token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The token lacks the required role. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Payload Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RecordDistributionAnswer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                dspId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordDistributionAnswerRequest"];
             };
         };
         responses: {
