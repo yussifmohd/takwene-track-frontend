@@ -99,7 +99,8 @@ src/components/ui/alert-dialog.tsx                # shadcn
 4. **Artist picker** (R4): own WAI-ARIA combobox (input + listbox, `aria-activedescendant`, arrows/
    Enter/Escape), debounced 250 ms search `GET /api/artists?search=&pageSize=10`, shows the chosen
    artist's name; used by the form and the list's artist filter. The filter shows the name of an
-   artist from the URL via `GET /api/artists/{id}` ("Unknown artist" on 404).
+   artist from the URL via `GET /api/artists/{id}` ("Unknown artist" on 404). Focusing the empty
+   field lists the first 10 artists by name, so short rosters need no typing.
 5. **ISRC input** (R5): text input `dir="ltr"`, `autoCapitalize="characters"`, any case/hyphens;
    zod refine with the API's rule; the page shows the format hint "CC-XXX-YY-NNNNN, e.g.
    EG-A1B-26-00001"; values are sent trimmed (the API normalises).
@@ -107,11 +108,15 @@ src/components/ui/alert-dialog.tsx                # shadcn
    release dates displayed with `formatCalendarDate` (UTC formatting, no shift).
 7. **Status page move** (R7): Phase 0 page → `/status`; `StatusDot` in the header reuses
    `useHealthQuery` (same cache, 30 s refresh) – one source; dot colour + `aria-label` "Service
-   status: healthy" and a visible tooltip-free label on hover via `title`.
+   status: healthy"; the same text as `title` for mouse users.
 8. **Visual** (frontend-design): status badges use the existing tokens – draft neutral ink,
    submitted saffron, distributed teal – with text labels (never colour alone); list = table from
    `sm`, stacked rows below (Phase 2 pattern); titles link to the detail page.
 9. **Shared pieces**: `Pagination` moves to `src/components` (artists + tracks).
+
+10. **Distributions empty state** depends on status: draft/submitted "Not sent to any platform yet.";
+    distributed without rows "Marked as distributed without platform deliveries recorded." (spec
+    "Status and distributions").
 
 ## Complexity Tracking
 

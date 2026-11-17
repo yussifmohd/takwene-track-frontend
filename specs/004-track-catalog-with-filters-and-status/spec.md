@@ -12,7 +12,7 @@
 
 ## Clarifications
 
-### Session 2026-11-17 (recommended defaults, pending the user's confirmation at the analyze checkpoint)
+### Session 2026-11-17 (recommended defaults; confirmed by the user at the analyze checkpoint)
 
 One batched round for both repos; Q1–Q4 are in the API spec and apply here too (all statuses visible
 to everyone; no edit/delete; artists found by typing; newest release date first).
@@ -24,6 +24,22 @@ to everyone; no edit/delete; artists found by typing; newest release date first)
 Decided without a question (reasonable defaults, listed in Assumptions): the full status page moves to
 `/status` and the header dot links there; genre and artist filters are included (the API supports
 them); a filter change returns to page 1.
+
+## Status and distributions (reconciliation with Phase 4)
+
+Status is the catalog workflow an admin moves by hand; distributions (Phase 4) are delivery records,
+one per track and platform. The two meet as follows, and the API's status change is not altered:
+
+- An admin may mark a submitted track as distributed with the status change alone (assignment
+  requirement). Such a track simply has **no distribution rows**; nothing is invented for it.
+- The track's detail always shows its distributions. For a distributed track without rows the web app
+  says "Marked as distributed without platform deliveries recorded." (draft/submitted: "Not sent to
+  any platform yet.").
+- Phase 4's distribute action accepts submitted **and** distributed tracks (interview answer 7). On a
+  submitted track it creates the rows and moves the status to distributed (through the same domain
+  rule, `Track.ChangeStatus`); on a distributed track it only adds or resets rows, so delivery records
+  can be added after a manual "distributed".
+- Distribution rows never change the status back; distributed stays final.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -72,7 +88,8 @@ says there are no distributions yet.
 
 1. **Given** a track, **When** opened, **Then** title, artist, ISRC (with hyphens), genre, status,
    release date, added and last-changed times are shown, and the distributions section shows an empty
-   state ("Not sent to any platform yet").
+   state ("Not sent to any platform yet."; for a distributed track: "Marked as distributed without
+   platform deliveries recorded.").
 2. **Given** an unknown id, **When** opened, **Then** a "Track not found" page with a link to the
    catalog is shown.
 3. **Given** loading, **Then** a placeholder shaped like the detail page is shown.

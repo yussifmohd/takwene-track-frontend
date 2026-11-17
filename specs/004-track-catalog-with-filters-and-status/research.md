@@ -22,7 +22,8 @@
 - Pattern: WAI-ARIA APG "Combobox with listbox popup" (editable, list autocomplete).
 - Input `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-activedescendant`; options
   `role="option"` with `aria-selected`; Down/Up move, Enter selects, Escape closes/clears, Tab leaves.
-- Search starts at 1 character, debounced 250 ms; states: searching (skeleton rows), "No artists
+- Focus on the empty field lists the first 10 artists by name (`search` omitted); typing searches,
+  debounced 250 ms; states: searching (skeleton rows), "No artists
   match", error with retry; option text through `UserText`.
 - Value = artist id; react-hook-form `Controller`; label shows the selected name.
 - Alternatives: native `<select>` with all artists (doesn't scale, would page through the API);
