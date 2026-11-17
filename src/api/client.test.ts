@@ -2,7 +2,7 @@ import { http, HttpResponse } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { server } from "@/test/server";
 import { apiFetch, configureApiClient } from "./client";
-import { ApiError, describeError, getFieldErrors } from "./problem";
+import { ApiError, describeError, getFieldErrors, parseRetryAfter } from "./problem";
 
 describe("apiFetch", () => {
   afterEach(() => configureApiClient({ getAccessToken: () => null, onUnauthorized: () => {} }));
@@ -81,5 +81,42 @@ describe("apiFetch", () => {
   it("exposes validation errors per field", () => {
     const error = new ApiError(400, { errors: { email: ["Email is invalid.", "Too long."], "items[0].unitPrice": ["Must be positive."] } });
     expect(getFieldErrors(error)).toEqual({ email: "Email is invalid.", "items[0].unitPrice": "Must be positive." });
+  });
+  it("reads Retry-After seconds from a 429", async () => {
+    server.use(
+      http.post("*/api/auth/login", () =>
+        HttpResponse.json(
+          { title: "Too many requests", status: 429 },
+          { status: 429, headers: { "Content-Type": "application/problem+json", "Retry-After": "42" } },
+        ),
+      ),
+    );
+
+    const error = (await apiFetch("/auth/login", { method: "POST", body: {} }).catch((e: unknown) => e)) as ApiError;
+
+    expect(error.status).toBe(429);
+    expect(error.retryAfterSeconds).toBe(42);
+  });
+
+  it("calls onUnauthorized for a 401 unless skipAuthHandling is set", async () => {
+    const onUnauthorized = vi.fn();
+    configureApiClient({ onUnauthorized });
+    server.use(http.get("*/api/private", () => HttpResponse.json({ status: 401 }, { status: 401 })));
+
+    await apiFetch("/private").catch(() => undefined);
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+
+    await apiFetch("/private", { skipAuthHandling: true }).catch(() => undefined);
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("parseRetryAfter", () => {
+  it("reads delta seconds and HTTP dates", () => {
+    const now = Date.parse("2026-11-17T10:00:00Z");
+    expect(parseRetryAfter("30", now)).toBe(30);
+    expect(parseRetryAfter("Tue, 17 Nov 2026 10:00:45 GMT", now)).toBe(45);
+    expect(parseRetryAfter(null)).toBeUndefined();
+    expect(parseRetryAfter("soon")).toBeUndefined();
   });
 });

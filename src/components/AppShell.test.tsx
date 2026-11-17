@@ -2,6 +2,7 @@ import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { routes } from "@/router";
 import { renderRoutes } from "@/test/render";
+import { signInForTest } from "@/test/session";
 
 describe("AppShell", () => {
   it("renders header, main navigation and content landmarks", async () => {
@@ -24,5 +25,13 @@ describe("AppShell", () => {
       expect(item).toHaveAttribute("aria-disabled", "true");
       expect(within(nav).queryByRole("link", { name: new RegExp(label) })).not.toBeInTheDocument();
     }
+  });
+
+  it("shows My account in the main navigation only when signed in", () => {
+    signInForTest();
+    renderRoutes(routes);
+
+    const nav = screen.getByRole("navigation", { name: "Main" });
+    expect(within(nav).getByRole("link", { name: "My account" })).toHaveAttribute("href", "/account");
   });
 });
