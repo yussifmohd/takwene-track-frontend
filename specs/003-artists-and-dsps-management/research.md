@@ -36,4 +36,4 @@
 ## R7 – After create
 - `onSuccess`: `queryClient.invalidateQueries({ queryKey: artistKeys.lists() })` then
   `navigate("/artists")` (page 1, sorted by name, so the new artist may be on another page — the toast
-  names the artist: "Artist added: <name>" rendered as text).
+  title is "Artist added" and its description is the artist's name, rendered as text).
