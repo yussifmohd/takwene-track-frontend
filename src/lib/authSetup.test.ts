@@ -49,10 +49,48 @@ describe("setupAuth", () => {
 
   it("follows a sign-out in another tab", () => {
     signInForTest();
+    localStorage.removeItem(SESSION_STORAGE_KEY); // what the other tab did
 
     window.dispatchEvent(new StorageEvent("storage", { key: SESSION_STORAGE_KEY, newValue: null }));
 
     expect(useAuthStore.getState().session).toBeNull();
+    expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it("follows another tab clearing all storage (key null)", () => {
+    signInForTest();
+    localStorage.clear();
+
+    window.dispatchEvent(new StorageEvent("storage", { key: null, newValue: null }));
+
+    expect(useAuthStore.getState().session).toBeNull();
+  });
+
+  it("trusts storage, not the event payload: a removal event while the entry is still there keeps the session", () => {
+    signInForTest();
+    window.dispatchEvent(new StorageEvent("storage", { key: SESSION_STORAGE_KEY, newValue: null }));
+    expect(useAuthStore.getState().session).not.toBeNull();
+  });
+
+  it("removes an expired session written by another tab instead of adopting it", async () => {
+    const value = JSON.stringify({
+      state: { session: makeSession({ expiresAt: new Date(Date.now() - 1000).toISOString() }) },
+      version: 1,
+    });
+    localStorage.setItem(SESSION_STORAGE_KEY, value);
+
+    window.dispatchEvent(new StorageEvent("storage", { key: SESSION_STORAGE_KEY, newValue: value }));
+
+    await expect.poll(() => localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+    expect(useAuthStore.getState().session).toBeNull();
+  });
+
+  it("ends an expired in-memory session instead of sending its token", async () => {
+    useAuthStore.setState({ session: makeSession({ expiresAt: new Date(Date.now() - 1000).toISOString() }) });
+    await apiFetch("/echo");
+    expect(authorization).toBeNull();
+    expect(useAuthStore.getState().session).toBeNull();
+    expect(useAuthStore.getState().signOutReason).toBe("expired");
   });
 
   it("follows a sign-in in another tab", async () => {
