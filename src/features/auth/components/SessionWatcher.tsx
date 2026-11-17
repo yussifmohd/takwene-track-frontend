@@ -1,21 +1,31 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { endExpiredSession, useAuthStore } from "@/stores/authStore";
 import { AUTH_QUERY_KEY } from "../hooks/useLoginMutation";
+import { useRequiresAuth } from "../hooks/useRequiresAuth";
+import { signOutDestination, type SignOutNavigationState } from "../signOutDestination";
 
 // setTimeout overflows above ~24.8 days; sessions are 60 minutes, but stay safe.
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
 /**
- * Ends the session when the token expires (timer + check on focus), clears signed-in data, and
- * tells the user why they were signed out. Protected pages then redirect via RequireAuth.
+ * The one place that finishes every sign-out (manual, expired, rejected by the API, another tab):
+ * `signOut(reason)` has already cleared the session and its storage entry; this removes the
+ * signed-in query cache, redirects (see signOutDestination) and explains. Also ends the session
+ * when the token expires (timer + check on focus/visibility).
  */
 export function SessionWatcher() {
   const session = useAuthStore((s) => s.session);
   const signOutReason = useAuthStore((s) => s.signOutReason);
   const acknowledgeSignOut = useAuthStore((s) => s.acknowledgeSignOut);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const onProtectedPage = useRequiresAuth();
+  // The location the sign-out happened on, while its redirect is in flight.
+  const pendingFrom = useRef<string | null>(null);
 
   useEffect(() => {
     if (!session) return;
@@ -39,17 +49,29 @@ export function SessionWatcher() {
   }, [session]);
 
   useEffect(() => {
-    if (!session) queryClient.removeQueries({ queryKey: AUTH_QUERY_KEY });
-  }, [session, queryClient]);
+    if (!signOutReason || pendingFrom.current !== null) return;
+    queryClient.removeQueries({ queryKey: AUTH_QUERY_KEY });
+
+    const destination = signOutDestination(signOutReason, `${location.pathname}${location.search}`, onProtectedPage);
+    if (signOutReason === "manual") toast.success("Signed out");
+    if (destination === null) {
+      if (signOutReason === "other-tab") toast.info("You signed out in another tab");
+      acknowledgeSignOut();
+      return;
+    }
+    // Acknowledged once the new page is shown (next effect). Until then RequireAuth renders
+    // nothing, so it cannot start a competing redirect of its own.
+    pendingFrom.current = location.key;
+    const state: SignOutNavigationState = { signOutReason };
+    void navigate(destination, { replace: true, state });
+  }, [signOutReason, location, onProtectedPage, navigate, queryClient, acknowledgeSignOut]);
 
   useEffect(() => {
-    if (signOutReason === "expired") {
-      toast.info("Your session ended", { description: "Sign in again to make changes." });
-    } else if (signOutReason === "rejected") {
-      toast.warning("Your session is no longer valid", { description: "Sign in again to make changes." });
+    if (pendingFrom.current !== null && location.key !== pendingFrom.current) {
+      pendingFrom.current = null;
+      acknowledgeSignOut();
     }
-    if (signOutReason) acknowledgeSignOut();
-  }, [signOutReason, acknowledgeSignOut]);
+  }, [location.key, acknowledgeSignOut]);
 
   return null;
 }

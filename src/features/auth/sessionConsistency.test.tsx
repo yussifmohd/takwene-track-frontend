@@ -59,8 +59,8 @@ describe("session consistency across sign-out and reload", () => {
     expectHeader("signed-in");
 
     await app.user.click(screen.getByRole("button", { name: "Sign out" }));
-    await waitFor(() => expect(app.router.state.location.pathname).toBe("/"));
-    expectHeader("signed-out");
+    await waitFor(() => expect(app.router.state.location.pathname).toBe("/login"));
+    expectHeader("signed-out", { onLoginPage: true });
     expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
     expect(Object.keys(localStorage)).toEqual([]);
 
@@ -119,12 +119,13 @@ describe("session consistency across sign-out and reload", () => {
 
   it("when the session expires on an open page, the header flips as a whole and storage is cleared", async () => {
     signInForTest({ expiresAt: new Date(Date.now() + 300).toISOString() });
-    renderRoutes(routes, { route: "/" });
+    const { router } = renderRoutes(routes, { route: "/" });
     expectHeader("signed-in");
 
     await waitFor(() => expect(useAuthStore.getState().session).toBeNull(), { timeout: 2000 });
 
-    expectHeader("signed-out");
+    await waitFor(() => expect(router.state.location.pathname).toBe("/login"));
+    expectHeader("signed-out", { onLoginPage: true });
     expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
   });
 
@@ -133,6 +134,6 @@ describe("session consistency across sign-out and reload", () => {
     renderRoutes(routes, { route: "/" });
     // The watcher ends it on mount; header and store agree immediately.
     expect(useAuthStore.getState().session).toBeNull();
-    expectHeader("signed-out");
+    expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
   });
 });
