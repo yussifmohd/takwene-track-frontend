@@ -1,50 +1,92 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: template → 1.0.0 (initial ratification)
+- Principles defined: I. Contract-First Integration; II. Clear State Ownership;
+  III. Every State Is Designed; IV. Tests Ship With Features; V. Security-Aware Client;
+  VI. Spec-Driven, Traceable Delivery; VII. Simplicity & License Hygiene
+- Added sections: Technology Stack & Constraints; Development Workflow & Quality Gates; Governance
+- Removed sections: none
+- Templates: ✅ .specify/templates/tasks-template.md (tests marked REQUIRED per Principle IV)
+             ✅ .specify/templates/plan-template.md (no edit needed)
+             ✅ .specify/templates/spec-template.md (no edit needed)
+- Deferred TODOs: none
+-->
+
+# Takwene Track Management Web Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Contract-First Integration
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+- The backend repo's OpenAPI contract (`backend/specs/<feature>/contracts/`) is the source of
+  truth. API types are generated from it (or mirror it exactly); hand-written response shapes
+  that diverge from the contract are forbidden.
+- All HTTP goes through one typed API client with a JWT interceptor. The base URL is `/api`
+  (Vite dev proxy locally, nginx proxy in Docker, ALB path routing on AWS).
+- ProblemDetails responses are mapped centrally: field errors to form fields, everything else to toasts.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Clear State Ownership
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- Server state lives only in TanStack Query (queries, mutations, cache invalidation).
+- Client/UI/auth state lives only in zustand stores. Server data is never copied into zustand.
+- Filters that define what the user is looking at (e.g. track status) are synced to the URL.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Every State Is Designed
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+- Every data view has loading, empty, error and success states. Loading uses shadcn `Skeleton`
+  shaped like the content; spinners are never the primary loader.
+- UI is built with shadcn/ui + Tailwind, accessible (labels, focus, keyboard), responsive down to
+  phone width, and follows the frontend-design skill for every screen.
+- Forms use react-hook-form + zod with inline field errors and disabled/pending submit states.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Tests Ship With Features (NON-NEGOTIABLE)
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- Each phase adds Vitest + React Testing Library tests for its key components, hooks and stores in
+  the same branch. Lint, typecheck, tests and build MUST pass locally and in CI before a PR.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Security-Aware Client
+
+- The access token is stored in a persisted zustand store (localStorage); the XSS tradeoff is
+  documented. Logout happens on token expiry or any 401, and protected routes guard write screens.
+- No secrets in the bundle or the repo; only `VITE_*` public config, with `.env.example` placeholders.
+- Never render untrusted HTML (`dangerouslySetInnerHTML` is forbidden).
+
+### VI. Spec-Driven, Traceable Delivery
+
+- Every phase follows Spec Kit: specify (WHAT/WHY, no stack) → clarify → plan (HOW, reads the
+  backend contract) → tasks → analyze → implement. No production code before spec, plan and tasks.
+- One branch per phase from an up-to-date main, Conventional Commits, no commits to main, no squash,
+  no force-push. A human merges; the backend PR of a phase is merged first.
+
+### VII. Simplicity & License Hygiene
+
+- Build only what the phase needs. Every npm dependency's license is checked before it is added;
+  commercial or source-available packages are forbidden. Versions are pinned through the committed
+  lockfile, Node is pinned via `.nvmrc` and `engines`, and pinned versions are recorded in Memory.md.
+
+## Technology Stack & Constraints
+
+- React + TypeScript (strict) + Vite, React Router.
+- zustand (client/auth state), TanStack React Query (server state).
+- shadcn/ui (current CLI) + Tailwind CSS, shadcn Skeleton for loading, toasts for errors.
+- react-hook-form + zod.
+- Vitest + React Testing Library; ESLint; `tsc --noEmit` typecheck.
+- Docker: multi-stage build served by nginx (SPA fallback, `/api` proxy to `http://api:8080`),
+  own `docker-compose.yml` running `web` on the external network `trackmgmt-net`.
+- CI: `.github/workflows/frontend-ci.yml` on pull_request to main (install, lint, typecheck, test, build).
+
+## Development Workflow & Quality Gates
+
+Definition of Done per phase: lint, typecheck, tests and build pass; CI green; `docker compose up`
+still works against the backend stack; spec, plan and tasks committed; repo Memory.md updated;
+PR opened with summary, test evidence and checklist; README kept current and linking to the
+backend repo's DECISIONS.md.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes other practices in this repo. Amendments require the user's
+approval, a semantic version bump and an updated Sync Impact Report. Every plan's Constitution
+Check and every PR review verify compliance; violations must be justified in Complexity Tracking.
+Runtime guidance: `CLAUDE.md` and `Memory.md`.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-11-17 | **Last Amended**: 2026-11-17
