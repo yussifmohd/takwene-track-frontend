@@ -64,8 +64,8 @@ API, and when another tab signs out.
 ### Important files
 | Path | What it does |
 |---|---|
-| `src/stores/authStore.ts` | zustand session `{ accessToken, expiresAt, email, roles }` persisted as `trackmgmt.session` (v1); zod-validated on load; key removed when signed out; `signOutReason` kept in memory only. |
-| `src/lib/authSetup.ts` | Wires `apiFetch`: attach the token only while valid; 401 on an authenticated call → `signOut("rejected")`; follows other tabs via the `storage` event. |
+| `src/stores/authStore.ts` | zustand session `{ accessToken, expiresAt, email, roles }` persisted as `trackmgmt.session` (v1); zod-validated on load; key removed when signed out; `signOutReason` kept in memory only. (Load and expiry rules tightened by the fix below.) |
+| `src/lib/authSetup.ts` | Wires `apiFetch`: attach the token only while valid; 401 on an authenticated call → `signOut("rejected")`; follows other tabs via the `storage` event. (Clears from other tabs handled since the fix below.) |
 | `src/api/auth.ts` | `login` (with `skipAuthHandling`, since a 401 there means wrong credentials) and `getCurrentUser`. |
 | `src/features/auth/pages/LoginPage.tsx` + `schemas.ts` | react-hook-form + zod; generic message on 401 (email kept, password cleared + focused); 400 → field errors; 429 → wait time from `Retry-After`; unreachable API message. |
 | `src/features/auth/redirect.ts` | `safeRedirect`: only same-origin paths as the return address; `loginPathFor`. |
@@ -96,3 +96,50 @@ from the backend `.env`. Tests: `npm test` (81 at the end of Phase 1).
 - Token readable by script on this origin (see the trade-off above).
 - jsdom tests cannot show navigation timing; real-browser checks were done with a throwaway
   script, not an automated E2E suite.
+
+---
+
+## Fix – Sign-out session state after reload (`fix-sign-out-session-state-after-reload`)
+
+### What was fixed
+Bug reported after Phase 1: the header looked half-rendered while the "Signed out" toast showed,
+and after sign-out + reload the stored session and the app's state could disagree. Found in real Edge:
+1. The toaster sat at top-right, exactly over the header's Sign in / Sign out controls.
+2. Rehydration ignored an expired, malformed or unreadable stored session **in memory only**; the
+   entry stayed in localStorage (persist only writes on state changes), so storage said "signed in"
+   while the header said "Sign in".
+3. "Signed in" was computed per component with `Date.now()` inside zustand selectors, which re-run
+   only on store changes – components rendered at different moments could disagree near expiry.
+4. A `storage` event with `key === null` (another tab cleared storage) was ignored.
+
+### Important files
+| Path | Change |
+|---|---|
+| `src/stores/authStore.ts` | Storage adapter validates on read (schema, version, expiry) and **removes** what it rejects; `useIsAuthenticated` = "store holds a session"; `endExpiredSession()` turns expiry into a store change; `getValidAccessToken()` ends an expired session instead of sending it. |
+| `src/features/auth/components/SessionWatcher.tsx` | Timer and focus/visibility checks call `endExpiredSession()`. |
+| `src/lib/authSetup.ts` | Storage listener handles `key === null` and reads the stored entry (source of truth) instead of the event payload. |
+| `src/components/ui/sonner.tsx` | Toasts fixed at bottom-right (not overridable). |
+| `src/features/auth/sessionConsistency.test.tsx` | Reload regression suite: sign-out clears storage; reload signed out/in/expired; header never shows Sign in together with the signed-in controls. |
+
+### Flow: page load with a stored session
+`authStore` module loads → persist calls `getItem("trackmgmt.session")` → JSON + zod + version +
+expiry check → valid: session in memory, header/guard/login page all signed in → invalid: key removed,
+session null everywhere. A session that expires later is ended by the watcher timer, on focus or
+visibility, or by the next API call – always through the store, so every component changes together.
+
+### Key decisions and why
+- **One source of truth with one rule**: storage holds exactly what memory holds; anything rejected is
+  removed where it is rejected, not merely ignored.
+- **No clock in selectors**: time-based state must become a store change, or components disagree.
+- **Toasts at the bottom**: transient messages must not cover controls that just changed.
+
+### How to run and test
+`npm test` (93 tests). Real-browser check: Edge headless via the DevTools protocol (throwaway script)
+covering sign-out → reload, two tabs, expired stored session, expiry while open, Back + reload,
+storage cleared in another tab, 360 px toast position.
+
+### Known limitations
+- Clearing storage in the **same** tab via DevTools is not observable (no event); the next reload or
+  API call reconciles.
+- The reload tests rebuild the store via `persist.rehydrate()` (the page-load code path), not a full
+  module reload.
