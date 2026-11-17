@@ -34,13 +34,13 @@ description: "Task list for Phase 3 – Track Catalog with Filters and Status (W
 
 - [ ] T008 [P] [US1] Tests `TracksPage.test.tsx`: skeleton, rows (title link, artist, genre, badge text, date), Arabic via `UserText`, status/genre/artist filters in URL + reload, combination, clear, paging + Back, empty (none / no matches; admin "Add track"), error + Retry, page past end
 - [ ] T009 [US1] `StatusBadge`, `TrackList` (+ skeleton; table from `sm`, stacked below), `TrackFilters` (native selects + artist picker), `TracksPage`; route `/` → TracksPage
-- [ ] T010 [P] [US1] Tests + `ArtistPicker` (combobox roles, typing searches debounced, arrows/Enter/Escape, no matches, error, selected name; filter shows name from `getArtist`, "Unknown artist" on 404) and `useArtistSearch`/`useArtistQuery`
+- [ ] T010 [P] [US1] Tests + `ArtistPicker` (combobox roles, empty focus lists the first 10, typing searches debounced, arrows/Enter/Escape, no matches, error, selected name; filter shows name from `getArtist`, "Unknown artist" on 404) and `useArtistSearch`/`useArtistQuery`
 
 ---
 
 ## Phase 4: User Story 2 – Track page (P1)
 
-- [ ] T011 [P] [US2] Tests `TrackDetailPage.test.tsx`: skeleton, all fields (ISRC hyphenated, dates), distributions empty state, not found (404 and bad id), error + Retry, no controls for visitors
+- [ ] T011 [P] [US2] Tests `TrackDetailPage.test.tsx`: skeleton, all fields (ISRC hyphenated, dates), distributions empty state (wording for draft/submitted vs distributed), not found (404 and bad id), error + Retry, no controls for visitors
 - [ ] T012 [US2] `TrackDetailSkeleton`, `DistributionsSection`, `TrackDetailPage`; route `tracks/:id`
 
 ---
@@ -55,7 +55,7 @@ description: "Task list for Phase 3 – Track Catalog with Filters and Status (W
 
 ## Phase 6: User Story 4 – Status control (P1)
 
-- [ ] T016 [P] [US4] Tests `StatusControl.test.tsx` / detail page: only `allowedNextStatuses` offered with the right labels; distributed asks for confirmation (cancel = no request); success updates badge, controls, list cache + toast; 409 → message + refetch; distributed → final note, no controls; visitors none
+- [ ] T016 [P] [US4] Tests `StatusControl.test.tsx` / detail page: only `allowedNextStatuses` offered with the right labels; distributed asks for confirmation (cancel = no request); success updates badge, controls, list cache + toast; 409 → message + refetch; distributed → final note, no controls; visitors none; 401 during a change → Phase 1 sign-out and back to the track after signing in
 - [ ] T017 [US4] `StatusControl` (+ AlertDialog), `useChangeTrackStatusMutation`
 
 ---
