@@ -8,7 +8,7 @@
 
 ## Summary
 
-Remove the unused shadcn CLI (and its 9 audit findings), pin eslint's `minimatch` to a fixed version if
+Remove the unused shadcn CLI (measured afterwards: this cleared 7 of the 21 audit findings; the minimatch override cleared 2 more), pin eslint's `minimatch` to a fixed version if
 the toolchain still passes, serve the font from the app and drop Google from the CSP, put the nginx
 security headers in one snippet without duplicating the API's, finish the README, run the end-to-end
 check against the full stack with the sample data, and verify a clean clone. The findings rows for the web
