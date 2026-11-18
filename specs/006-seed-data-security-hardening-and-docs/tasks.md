@@ -33,7 +33,7 @@ description: "Task list for Phase 5 – Security Hardening, Documentation and En
 ## Phase 4: User Story 4 – Delivery (P2)
 
 - [x] T009 [US4] Dead code/files check (grep `console.`/`debugger`/TODO, unused files); clean clone build + tests in a new scratch folder
-- [ ] T010 Polish: walkthrough Phase 5 section, Memory.md, ai-log Phase 5 frontend section on the backend branch, submission checklist in master Memory.md filled in (A5), tick tasks, PR after the backend PR; CI green
+- [x] T010 Polish: walkthrough Phase 5 section, Memory.md, ai-log Phase 5 frontend section on the backend branch, submission checklist in master Memory.md filled in (A5), tick tasks, PR after the backend PR; CI green
 
 ## Dependencies
 
