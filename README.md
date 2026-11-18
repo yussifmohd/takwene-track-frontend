@@ -10,12 +10,14 @@ and tracks, submits or withdraws tracks, **distributes** them to platforms and r
 - How the code works, feature by feature: [docs/walkthrough.md](docs/walkthrough.md)
 - Design decisions and AI usage (both repos): [backend DECISIONS.md](https://github.com/yussifmohd/takwene-track-backend/blob/main/DECISIONS.md)
   (detailed log: [backend docs/ai-log.md](https://github.com/yussifmohd/takwene-track-backend/blob/main/docs/ai-log.md))
+- Security review of both repos: [backend docs/security-review.md](https://github.com/yussifmohd/takwene-track-backend/blob/main/docs/security-review.md)
 
 ## Tech stack
 
 React 19 + TypeScript 5.9 (strict) + Vite 8 · React Router 8 · TanStack Query (server state) ·
-zustand (session) · shadcn/ui on Radix + Tailwind 4 · react-hook-form + zod · API types generated
-from the backend's OpenAPI contract · Vitest + Testing Library + MSW · nginx (container).
+zustand (session) · shadcn/ui components (written into the repo) on Radix + Tailwind 4 · react-hook-form + zod · API types generated
+from the backend's OpenAPI contract · Vitest + Testing Library + MSW · nginx (container) ·
+Readex Pro font (Latin + Arabic) served by the app itself, under the SIL Open Font License (`public/fonts/OFL.txt`).
 
 ## Quick start
 
@@ -34,6 +36,10 @@ cd ../frontend && docker compose up --build
 Open http://localhost:8081. nginx serves the app and proxies `/api/*` to `http://api:8080`
 (override with `API_UPSTREAM`). If the API is down, pages still load and say "Can't reach the
 server" with a Retry button.
+
+On a fresh database the API adds a **sample catalogue** (17 artists, 32 tracks with deliveries in every
+state). Artist names, song titles and genres are real; ISRCs (`XX-SMP-…`), emails (`@example.com`),
+dates and statuses are invented sample data. Details: the backend README ("Sample data").
 
 A backend database created before platform deliveries existed can hold tracks marked distributed
 without any delivery; the API no longer allows that and nothing repairs them. Reset it with
@@ -56,7 +62,12 @@ npm run dev        # http://localhost:5173, proxies /api to http://localhost:808
 | `API_UPSTREAM` | container (compose) | `http://api:8080` | where nginx forwards `/api/*` |
 
 Anything prefixed `VITE_` ends up in the public bundle, so no secrets belong in `.env` files here.
-The nginx config (`nginx/`) sets a strict Content Security Policy (no inline or third-party scripts).
+The nginx config sets the security headers once, in `nginx/security-headers.conf`, and includes them in
+every location that serves the app: a Content Security Policy that allows only this site (no
+third-party scripts, styles, fonts or connections; `object-src 'none'`, `frame-ancestors 'none'`),
+`nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy and
+`Cross-Origin-Opener-Policy`. `/api/*` responses keep the API's own headers. The page makes no request
+to any other host (`src/thirdPartyHosts.test.ts` fails if a third-party URL appears).
 
 ## Database migrations
 
@@ -99,6 +110,14 @@ Never edit it by hand; regenerate it when the contract changes and let the type 
 
 **CI.** `.github/workflows/frontend-ci.yml` runs on every pull request to `main`: `npm ci`, lint,
 typecheck, tests, build and an initial-JS budget (< 250 kB gzip).
+
+**Branch protection** is not enabled on GitHub for this repository. Every change went through a pull
+request with a green CI run and was merged by the developer (merge commits, no force-push). For a team,
+protect `main`: require a pull request and the CI check, block force-pushes and deletions.
+
+**Images.** The container's runtime stage removes curl (unused) and upgrades the base image's Alpine
+packages at build time, because the newest base tag still ships packages with known CVEs. Those
+packages are not pinned, so re-scan the image (e.g. Trivy) on every rebuild; see the security review.
 
 ## Pages and the API calls behind them
 
@@ -146,7 +165,8 @@ src/
   lib/          query client, formatting, auth wiring, countries
   stores/       zustand session store
   test/         MSW server and builders, render helpers, setup
-nginx/          nginx config template for the container
+nginx/          nginx config template and the shared security-headers snippet
+public/fonts/   self-hosted Readex Pro (woff2 per script) and its license
 specs/          spec, plan and tasks per feature
 docs/           walkthrough (how the code works)
 ```
