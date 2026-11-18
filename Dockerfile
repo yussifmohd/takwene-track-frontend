@@ -15,6 +15,7 @@ FROM nginxinc/nginx-unprivileged:1.30.6-alpine AS runtime
 ENV API_UPSTREAM=http://api:8080 \
     NGINX_RESOLVER=127.0.0.11
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8081
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=5 \
