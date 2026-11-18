@@ -29,13 +29,15 @@
 - `ArtistPicker` (own WAI-ARIA combobox, no package): first 10 on focus, 250 ms debounced `?search=`, keyboard; selected name via `useArtistQuery` for URL filters ("Unknown artist" on 404).
 - Health: `StatusDot` in the header (same query as the card) → `/status` (`StatusPage`). shadcn components are written by hand (CLI injects `cn`).
 - MSW defaults now include `tracksHandler()` (filters + paging), `trackDetail()` builder, `artistsHandler` supports `search`.
+- Hardening (Phase 5): font self-hosted (`public/fonts/*.woff2` + `OFL.txt`, `@font-face` in `index.css`); no third-party host anywhere (`src/thirdPartyHosts.test.ts`). nginx security headers live ONLY in `nginx/security-headers.conf`, included in every location that serves files (`/`, `/assets/`); never add `add_header` at server level or a location without the include; `/api/` keeps the API's headers. shadcn CLI removed (components are hand-written); `overrides` minimatch 11.0.4. Accepted: picomatch GHSA-fc5q-39xc-vjpf (dev tools only, no fix; `npm audit --omit=dev` = 0).
 - Reload tests: `sessionConsistency.test.tsx` `reload()` helper (unmount → restore storage → `persist.rehydrate()` → render). Prove a regression test fails on the old code (stash the fix) before trusting it.
 
 ## Pinned versions
 Node 26.13.1 · react 19.3.1 · react-router 8.5.1 · @tanstack/react-query 5.105.3 · zustand 5.0.16 · react-hook-form 7.91.0 · zod 4.6.7 ·
-tailwindcss 4.3.4 · shadcn 4.23.0 · radix-ui 1.8.1 · sonner 2.0.8 · lucide-react 1.66.0 · vite 8.3.5 · typescript 5.9.3 ·
+tailwindcss 4.3.4 · radix-ui 1.8.1 · sonner 2.0.8 · lucide-react 1.66.0 · vite 8.3.5 · typescript 5.9.3 ·
 vitest 5.1.0 · jsdom 30.1.3 · RTL 16.3.3 · @testing-library/dom 10.4.2 · msw 3.0.3 · eslint 10.14.0 · typescript-eslint 8.72.1 · globals 17.14.0 ·
-openapi-typescript 7.13.0 · images node:26.13.1-alpine, nginxinc/nginx-unprivileged:1.30.6-alpine.
+openapi-typescript 7.13.0 · override minimatch 11.0.4 (BlueOak-1.0.0, 2026-11-02) · Readex Pro woff2 (OFL-1.1, from google/fonts) · images node:26.13.1-alpine, nginxinc/nginx-unprivileged:1.30.6-alpine.
+- **Security exception (user decision 2026-11-18)**: the web runtime stage runs `apk del curl && apk upgrade --no-cache` as root, then `USER 101`; base tag unchanged. Trivy 0.76.1 before: 61 (1 CRITICAL brotli-libs CVE-2026-111497, 12 HIGH: libexpat ×4, libxslt ×3, curl/libcurl CVE-2026-92392, musl/musl-utils CVE-2026-107891, zlib CVE-2026-85091; 4 MEDIUM, 44 LOW); after (`--no-cache` rebuild, Alpine 3.24.4): 0. Packages are not pinned because Alpine removes superseded versions (the build would break). **Re-scan the image with Trivy on every rebuild.** Proposed (not added): a CI step running the `aquasec/trivy:0.76.1` image against the built image, failing on HIGH/CRITICAL.
 
 ## State
 - Phase 0 (`001-project-foundation-and-health-check`): implemented; status page with health card, app shell, Docker on 8081, CI.
@@ -45,4 +47,5 @@ openapi-typescript 7.13.0 · images node:26.13.1-alpine, nginxinc/nginx-unprivil
 - Phase 2 (`003-artists-and-dsps-management`): public artists list (paging in URL, countries by name, emails admin-only), admin-only Add artist with client + server field errors, role-aware guard; 132 tests; bundle 181 kB gzip.
 - Phase 3 (`004-track-catalog-with-filters-and-status`): tracks catalogue at `/` (filters in URL), track page with admin status control + distributions empty state, add track with artist picker and ISRC checks, header status dot → `/status`; 200 tests; bundle 200.7 kB gzip.
 - Phase 4 (`005-track-distribution-to-dsps`): deliveries table, Distribute dialog, simulated answers, "Mark as distributed" removed, README rewritten to the README rule; 214 tests; bundle 202 kB gzip.
-- Next: Phase 5 – seed data, security hardening, docs (`006-seed-data-security-hardening-and-docs`).
+- Phase 5 (`006-seed-data-security-hardening-and-docs`): self-hosted font, nginx header snippet, shadcn CLI removed, minimatch override, image upgrade (exception), README finished; E2E on the full stack with sample data (Edge, desktop/400 px × light/dark); 223 tests; bundle 202 kB gzip.
+- Next: nothing planned for the web app (Phase 6 is backend-only AWS scripts).

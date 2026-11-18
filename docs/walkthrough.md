@@ -388,3 +388,44 @@ Found by the developer in manual testing: native select lists were light grey wi
 - Measured in Edge, dark, 1100 px: list text 13.8:1, highlighted row 9.32:1, closed select 12.83:1, focus
   ring 6.06:1 against the row. The full Edge/Chrome/Brave × light/dark × 1100/400 px matrix was still
   running when this was committed.
+
+## Phase 5 – Hardening and finish (`006-seed-data-security-hardening-and-docs`)
+
+### What was built
+No new pages. The app now loads nothing from other sites (the font is served by the app), nginx sends
+one set of security headers from every location that serves the app, the unused shadcn command-line
+package is gone, the container image's OS packages are upgraded at build time, and the README is finished.
+The API side added a sample catalogue, so a fresh stack opens on 32 tracks.
+
+### Important files
+| Path | What it does |
+|---|---|
+| `public/fonts/readex-pro-{arabic,latin,latin-ext,vietnamese}.woff2` + `OFL.txt` | Readex Pro (variable, weights 300–600) per script, with the SIL Open Font License. |
+| `src/index.css` | Four `@font-face` rules with `unicode-range`, so a page downloads only the scripts it shows (the Arabic file only where Arabic text appears). |
+| `index.html` | Preloads the Latin file; no Google links. |
+| `nginx/security-headers.conf` | CSP (self only, `object-src 'none'`, `frame-ancestors 'none'`, `base-uri`/`form-action 'self'`), nosniff, DENY, Referrer-Policy, Permissions-Policy, COOP. |
+| `nginx/default.conf.template` | Includes the snippet in `/` and `/assets/` (an `add_header` inside a location drops the server-level ones – that was the bug); `/api/` passes the API's own headers. |
+| `src/thirdPartyHosts.test.ts` | Fails if `index.html`, the CSS or nginx config mention another host, if the CSP allows one, or if a font file or the license goes missing. |
+| `Dockerfile` | Runtime stage: `apk del curl && apk upgrade` as root, then back to uid 101 (documented exception: re-scan on every rebuild). |
+| `package.json` | `shadcn` removed; `overrides` moves eslint's minimatch to 11.0.4. |
+
+### Request flow: loading `/tracks/<id>` with an Arabic title
+1. nginx serves `index.html` (headers from the snippet, `Cache-Control: no-cache`); the browser preloads `/fonts/readex-pro-latin.woff2`.
+2. The script and stylesheet come from `/assets/` with the same headers and a one-year immutable cache.
+3. The page calls `/api/tracks/<id>` (same origin, proxied to the API; the API's headers apply).
+4. The title contains Arabic, so the browser also fetches `/fonts/readex-pro-arabic.woff2`: every request goes to this site.
+
+### Key decisions and why
+- **Self-hosted font**: visitors' addresses no longer go to Google, and the CSP lists no third-party host.
+- **One header snippet**: nginx's `add_header` inheritance silently dropped headers; one include per location avoids it.
+- **Remove the shadcn CLI**: unused (components are hand-written) and the source of 7 dev-tool audit findings.
+- **Accept the picomatch advisory**: no fixed release exists, and it only runs in build tools; nothing ships (`npm audit --omit=dev` = 0).
+
+### How to run and test
+Start the backend stack (fresh volume for the sample data), then `docker compose up --build` here and open
+http://localhost:8081. `npm test -- --run` (223 tests), `npm run lint`, `npm run typecheck`, `npm run build`.
+
+### Known limitations
+- Security headers apply only when nginx serves the app; `npm run dev` (Vite) does not send them.
+- The image's Alpine packages are upgraded at build time without pins, so two builds on different days can differ: re-scan with Trivy.
+- The session token stays in `localStorage` (documented trade-off).
